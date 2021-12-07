@@ -6,7 +6,7 @@ This project adapts the on-chain art storage strategy employed by the [nouns](ht
 
 1. `TozziDuckToken.sol` - Customized ERC-721 implementation. Most notable is the `tokenURI()` function which generates and returns a data URI. Also contains variety of administrative functions that can be used by owner of vending machine to freeze/unfreeze minting, set mint price, etc.
 2. `TozziDuckDescriptor.sol` - This contract is responsible for storing encoded SVG data (duckData) and generation of data URI making use of `NFTDescriptor.sol` and `RLEToSVG.sol` libraries.
-3. `ChinsawProjects.sol` - ERC-1155 contract used to create 'Project Tokens' for Chain/Saw projects. These Project Tokens are NFTs that represent particular projects that Chain/Saw is working on. These tokens can be sold to collaborators to cover up front costs and are also used in project revenue splits. Finally, certain Project Tokens have additional utility value. For example, the Project Token for this project will also represent ownership of the duck vending machine.
+3. `ProjectTokenManager.sol` - ERC-1155 contract used to create 'Project Tokens' for Chain/Saw projects. These Project Tokens are NFTs that represent particular projects that Chain/Saw is working on. These tokens can be sold to collaborators to cover up front costs and are also used in project revenue splits. Finally, certain Project Tokens have additional utility value. For example, the Project Token for this project will also represent ownership of the duck vending machine.
 
 ## Encoding Duck Data
 
