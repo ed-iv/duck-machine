@@ -1,0 +1,12 @@
+[submodule "contracts/lib/sstore2"]
+	path = contracts/lib/sstore2
+	url = https://github.com/0xsequence/sstore2
+[submodule "contracts/lib/base64"]
+	path = contracts/lib/base64
+	url = https://github.com/Brechtpd/base64
+[submodule "contracts/lib/solmate"]
+	path = contracts/lib/solmate
+	url = https://github.com/Rari-Capital/solmate
+[submodule "contracts/lib/ds-test"]
+	path = contracts/lib/ds-test
+	url = https://github.com/dapphub/ds-test

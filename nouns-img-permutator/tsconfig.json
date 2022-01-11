@@ -1,8 +1,0 @@
-{  
-  "compilerOptions": {
-    "downlevelIteration": true, 
-    "rootDir": "src",
-    "outDir": "dist",
-    "lib": ["ES2020"]
-  }
-}
