@@ -1,15 +1,21 @@
 # Tozzi Ducks Contracts
 
-This project adapts the on-chain art storage strategy employed by the [nouns](https://github.com/nounsDAO/nouns-monorepo) project. SVG artwork is encoded using a [custom RLE (Run-Length Encoding)](https://nouns.notion.site/Noun-Protocol-32e4f0bf74fe433e927e2ea35e52a507#f7d579663e65480193e182355a29af63) and stored directly in on-chain storage. This data is then used to build a data URI which includes the reconstructed SVG image.
+This project emulates a vending machine that dispenses NFTs featuring pixel-art ducks made by artist Jim Tozzi. There are 200 Tozzi ducks that will be minted by users at a price set by the admin of the contract. Additionally, users will also have the option to mint their own custom ducks that they draw using a drawing app embedded in the front-end of this application.
 
-## Primary Contracts
+## On-Chain Image Data
 
-1. `TozziDuckToken.sol` - Customized ERC-721 implementation. Most notable is the `tokenURI()` function which generates and returns a data URI. Also contains variety of administrative functions that can be used by owner of vending machine to freeze/unfreeze minting, set mint price, etc.
-2. `TozziDuckDescriptor.sol` - This contract is responsible for storing encoded SVG data (duckData) and generation of data URI making use of `NFTDescriptor.sol` and `RLEToSVG.sol` libraries.
-3. `ProjectTokenManager.sol` - ERC-1155 contract used to create 'Project Tokens' for Chain/Saw projects. These Project Tokens are NFTs that represent particular projects that Chain/Saw is working on. These tokens can be sold to collaborators to cover up front costs and are also used in project revenue splits. Finally, certain Project Tokens have additional utility value. For example, the Project Token for this project will also represent ownership of the duck vending machine.
+All image data for both Tozzi and Custom ducks is going to be stored entirely on-chain taking advantage of (1) the .webp image compression format and (2) storing image data as bytecode using the [`SSTORE2` library from Rari-Capital](https://github.com/Rari-Capital/solmate/blob/main/src/utils/SSTORE2.sol) to save on storage costs. Additionally, minting costs will be passed off to users through lazy-minting. A merkle root representing the hashed data of all 200 valid Tozzi duck images is stored as a constant and used to verify duck data which will be submitted by users from the front-end as part of the minting process.
 
-## Encoding Duck Data
+## Tokenization of Machine Ownership
 
-If you want to encode some ducks or are curious where the data in the deploy.js script comes from, you can make use of the encoding scripts found in one of the `img-permutator` branches of the nouns monorepo. For example, the scripts found in this branch were used to generate duckData in the deploy script: https://github.com/nounsDAO/nouns-monorepo/tree/img-permutator-preview/src-curiosity/packages/nouns-img-permutator. 
+Additionally, the vending machine itself will be tokenized such that ownership of the machine will be transferrable as an ERC-721 token. The holder of this token will have access to a suite of administrative features, e.g. pausing duck minting, modifying minting prices, etc.
 
-To encode custom (non-nouns artwork), you will have to tinker around with the encode.js and decode.js scripts in the `encoding/` directory to point them to the location of your target image. Eventually, these scripts will adapted too and added to this repo, but hacking at the nouns repo is the current method.
+As a rudimentary content management system, the owner of the machine will also be able to burn any custom ducks within a specified window of 1 week. This gives the owner of the machine some control over what content makes its way into the collection.
+
+## Contracts
+
+There are three primary contracts in play here:
+
+1. `ChainsawProjects.sol` - This contract will be used for this and future Chain/Saw projects to create 'Project Tokens' that will be minted to represent specific projects. In some cases, these tokens will afford the owner utility. In this case, the holder of the TozziDuck project token will be the administrator of the machine.
+2. `OwnableByERC721.sol` - Overrides ERC-721 `owner()` function so that it returns the address of  the owner of a specified ownership token (ERC-721)
+3. `TheAmazingTozziDuckMachine.sol` - The primary contract representing the duck machine. Has all necessary functionality for minting and administrating the state of the machine.
