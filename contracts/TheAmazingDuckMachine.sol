@@ -5,9 +5,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "sstore2/SSTORE2.sol";
-import { Base64 } from "base64/base64.sol";
-import "@solmate/utils/SafeTransferLib.sol";
+import { Base64 } from "./lib/base64.sol";
+import "@rari-capital/solmate/src/utils/SSTORE2.sol";
+import "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 import "./OwnableByERC721.sol";
 
 contract TheAmazingDuckMachine is ERC721, OwnableByERC721 {

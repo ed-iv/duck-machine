@@ -1,4 +1,0 @@
-sstore2/=contracts/lib/sstore2/contracts/
-base64/=contracts/lib/base64/
-@solmate/=contracts/lib/solmate/src/
-ds-test/=contracts/lib/ds-test/src/
