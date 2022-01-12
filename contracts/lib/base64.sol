@@ -5,7 +5,7 @@ pragma solidity >=0.6.0;
 /// @author Brecht Devos - <brecht@loopring.org>
 /// @notice Provides functions for encoding/decoding base64
 library Base64 {
-    string internal constant TABLE_ENCODE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    string internal constant TABLE_ENCODE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     bytes  internal constant TABLE_DECODE = hex"0000000000000000000000000000000000000000000000000000000000000000"
                                             hex"00000000000000000000003e0000003f3435363738393a3b3c3d000000000000"
                                             hex"00000102030405060708090a0b0c0d0e0f101112131415161718190000000000"
