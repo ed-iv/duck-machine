@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import testDuck from "../scripts/testdata/testdata";
+import testDuck from "../../scripts/testdata/testdata";
 import "hardhat-gas-reporter";
 
 describe("Duck Token", function () {
