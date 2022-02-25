@@ -5,8 +5,6 @@ import "./interfaces/IOwnableByERC721.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-import "hardhat/console.sol";
-
 contract ChainsawProjects is ERC721 {
     uint256 private _counter;
 
