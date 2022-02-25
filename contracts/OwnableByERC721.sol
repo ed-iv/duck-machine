@@ -8,7 +8,6 @@ interface SIERC721 {
 }
 
 abstract contract OwnableByERC721 is IOwnableByERC721, Context {
-
     uint256 private _projectId;
     SIERC721 private _chainsawProjects;
 

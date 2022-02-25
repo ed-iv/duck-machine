@@ -35,6 +35,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.4.2",
     "@rari-capital/solmate": "^6.2.0",
-    "base64-sol": "^1.1.0"
+    "base64-sol": "^1.1.0",
+    "hardhat-deploy": "^0.10.5"
   }
 }
