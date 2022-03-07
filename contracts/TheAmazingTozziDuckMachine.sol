@@ -219,16 +219,7 @@ contract TheAmazingTozziDuckMachine is ERC721, OwnableByERC721 {
                     "data:application/json;base64,",
                     Base64.encode(
                         bytes(
-                            abi.encodePacked(
-                                "{'name':'",
-                                "Tozzi Duck #",
-                                tokenId.toString(),
-                                "', 'description':'",
-                                "Hell yeah!",
-                                "', 'image_data': '",
-                                svg,
-                                "'}"
-                            )
+                            abi.encodePacked('{"name":"', "Tozzi Duck #", tokenId.toString(), '", "description":"', "Hell yeah!", '", "image_data": "', svg, '"}')
                         )
                     )
                 )
