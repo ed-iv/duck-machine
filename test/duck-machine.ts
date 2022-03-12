@@ -1,5 +1,4 @@
 /* eslint-disable node/no-extraneous-import */
-import { expect } from "chai";
 import { ethers } from "hardhat";
 import "hardhat-gas-reporter";
 import { ChainsawProjects, TheAmazingTozziDuckMachine } from "../typechain";
@@ -46,32 +45,15 @@ describe("TheAmazingTozziDuckMachine", function () {
   });
 
   it("set setting functions", async function () {
-    const setTozziDuckPriceTx =
-      await theAmazingTozziDuckMachine.setTozziDuckPrice(2);
-    await setTozziDuckPriceTx.wait();
-    expect(await theAmazingTozziDuckMachine.tozziDuckPrice()).to.equal(2);
-
-    const setCustomDuckPriceTx =
-      await theAmazingTozziDuckMachine.setCustomDuckPrice(1);
-    await setCustomDuckPriceTx.wait();
-    expect(await theAmazingTozziDuckMachine.customDuckPrice()).to.equal(1);
-
-    const setMaxCustomDucksTx =
-      await theAmazingTozziDuckMachine.setMaxCustomDucks(200);
-    await setMaxCustomDucksTx.wait();
-    expect(await theAmazingTozziDuckMachine.maxCustomDucks()).to.equal(200);
-
-    const flipTozziStatusTx =
-      await theAmazingTozziDuckMachine.flipTozziStatus();
-    await flipTozziStatusTx.wait();
-    expect(await theAmazingTozziDuckMachine.tozziDucksEnabled()).to.equal(true);
-
-    const flipCustomStatusTx =
-      await theAmazingTozziDuckMachine.flipCustomStatus();
-    await flipCustomStatusTx.wait();
-    expect(await theAmazingTozziDuckMachine.customDucksEnabled()).to.equal(
-      true
-    );
+    const setMachineSettingTx =
+      await theAmazingTozziDuckMachine.setMachineSetting({
+        tozziDuckPrice: ethers.BigNumber.from(2),
+        customDuckPrice: ethers.BigNumber.from(1),
+        maxCustomDucks: ethers.BigNumber.from(200),
+        tozziDucksEnabled: true,
+        customDucksEnabled: true,
+      });
+    await setMachineSettingTx.wait();
   });
 
   it("mint tozzi duck tokens", async function () {
@@ -86,10 +68,22 @@ describe("TheAmazingTozziDuckMachine", function () {
   });
 
   it("mint custom duck tokens", async function () {
-    const mintCustomDuckTx = await theAmazingTozziDuckMachine
+    let mintCustomDuckTx;
+    mintCustomDuckTx = await theAmazingTozziDuckMachine
       .connect(signer2)
       .mintCustomDuck(duckData[0].webp, { value: 1 });
     await mintCustomDuckTx.wait();
+    mintCustomDuckTx = await theAmazingTozziDuckMachine
+      .connect(signer2)
+      .mintCustomDuck(duckData[1].webp, { value: 1 });
+    await mintCustomDuckTx.wait();
+  });
+
+  it("burn custom duck", async function () {
+    const burnCustomDuckTx = await theAmazingTozziDuckMachine
+      .connect(signer1)
+      .burnRenegadeDuck(200, "Reason");
+    await burnCustomDuckTx.wait();
   });
 
   it("call token uri", async function () {
@@ -100,10 +94,14 @@ describe("TheAmazingTozziDuckMachine", function () {
   });
 
   it("withdraw", async function () {
+    console.log(
+      "machine balance",
+      await ethers.provider.getBalance(theAmazingTozziDuckMachine.address)
+    );
     const signer2Address = await signer2.getAddress();
     const withdrawTx = await theAmazingTozziDuckMachine
       .connect(signer1)
-      .withdraw(signer2Address);
+      .withdraw(signer2Address, 0);
     await withdrawTx.wait();
     console.log(
       "signer2 balance",

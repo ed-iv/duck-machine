@@ -51,6 +51,7 @@ import {Base64} from "./lib/base64.sol";
 import "@rari-capital/solmate/src/utils/SSTORE2.sol";
 import "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 import "./OwnableByERC721.sol";
+import "hardhat/console.sol";
 
 enum DuckType {
     Tozzi,
@@ -60,11 +61,16 @@ enum DuckType {
 contract TheAmazingTozziDuckMachine is ERC721, OwnableByERC721 {
     using Strings for uint256;
 
-    uint256 public tozziDuckPrice;
-    uint256 public customDuckPrice;
-    uint256 public maxCustomDucks;
-    bool public tozziDucksEnabled;
-    bool public customDucksEnabled;
+    struct MachineSetting {
+        uint256 tozziDuckPrice;
+        uint256 customDuckPrice;
+        uint256 maxCustomDucks;
+        bool tozziDucksEnabled;
+        bool customDucksEnabled;
+    }
+
+    MachineSetting public machineSetting;
+
     uint256 public constant BURN_WINDOW = 1 weeks;
 
     mapping(uint256 => address) public duckIdToWEBP;
@@ -109,47 +115,24 @@ contract TheAmazingTozziDuckMachine is ERC721, OwnableByERC721 {
         OwnableByERC721(chainsawProjects)
     {}
 
-    function withdraw(address recipient) public onlyOwner {
-        SafeTransferLib.safeTransferETH(recipient, address(this).balance);
+    function setMachineSetting(MachineSetting memory setting) public onlyOwner {
+        machineSetting = setting;
     }
 
-    function setTozziDuckPrice(uint256 price) public onlyOwner {
-        tozziDuckPrice = price;
-        emit DuckPriceUpdated(DuckType.Tozzi, msg.sender, price);
-    }
-
-    function setCustomDuckPrice(uint256 price) public onlyOwner {
-        customDuckPrice = price;
-        emit DuckPriceUpdated(DuckType.Custom, msg.sender, price);
-    }
-
-    function setMaxCustomDucks(uint256 max) public onlyOwner {
-        maxCustomDucks = max;
-        emit MaxCustomDucksUpdated(msg.sender, max);
-    }
-
-    function flipTozziStatus() public onlyOwner {
-        tozziDucksEnabled = !tozziDucksEnabled;
-        emit DuckMintingStatusUpdated(
-            DuckType.Tozzi,
-            msg.sender,
-            tozziDucksEnabled
+    function withdraw(address recipient, uint256 amount) public onlyOwner {
+        require(
+            amount <= address(this).balance,
+            "The amount has been exceeded."
         );
-    }
-
-    function flipCustomStatus() public onlyOwner {
-        customDucksEnabled = !customDucksEnabled;
-        emit DuckMintingStatusUpdated(
-            DuckType.Custom,
-            msg.sender,
-            tozziDucksEnabled
-        );
+        if (amount == 0) amount = address(this).balance;
+        SafeTransferLib.safeTransferETH(recipient, amount);
     }
 
     function burnRenegadeDuck(uint256 duckId, string calldata reason)
         public
         onlyOwner
     {
+        require(duckId >= 200, "Tozzi duck can't be burned.");
         require(_exists(duckId), "Duck does not exist.");
         uint256 curTime = block.timestamp;
         require(
@@ -169,8 +152,14 @@ contract TheAmazingTozziDuckMachine is ERC721, OwnableByERC721 {
         string calldata webp,
         bytes32[] calldata merkleProof
     ) public payable {
-        require(tozziDucksEnabled, "Minting of Tozzi Ducks is disabled");
-        require(msg.value == tozziDuckPrice, "msg.value != duck price");
+        require(
+            machineSetting.tozziDucksEnabled,
+            "Minting of Tozzi Ducks is disabled"
+        );
+        require(
+            msg.value == machineSetting.tozziDuckPrice,
+            "msg.value != duck price"
+        );
         bytes32 node = keccak256(abi.encodePacked(duckId, webp));
         require(
             MerkleProof.verify(merkleProof, _MERKLE_ROOT, node),
@@ -179,24 +168,41 @@ contract TheAmazingTozziDuckMachine is ERC721, OwnableByERC721 {
         address pointer = SSTORE2.write(bytes(webp));
         duckIdToWEBP[duckId] = pointer;
         _safeMint(msg.sender, duckId);
-        emit DuckMinted(DuckType.Tozzi, msg.sender, duckId, tozziDuckPrice);
+        emit DuckMinted(
+            DuckType.Tozzi,
+            msg.sender,
+            duckId,
+            machineSetting.tozziDuckPrice
+        );
     }
 
     function mintCustomDuck(string calldata webp) public payable {
-        require(customDucksEnabled, "Minting of Custom Ducks is disabled");
         require(
-            _customCounter + 1 <= maxCustomDucks,
+            machineSetting.customDucksEnabled,
+            "Minting of Custom Ducks is disabled"
+        );
+        require(
+            _customCounter + 1 <= machineSetting.maxCustomDucks,
             "Custom duck limit reached"
         );
-        require(msg.value == customDuckPrice, "msg.value != duck price");
+        require(
+            msg.value == machineSetting.customDuckPrice,
+            "msg.value != duck price"
+        );
         bytes32 webpHash = keccak256(abi.encodePacked(webp));
         require(!isCustomExisting[webpHash], "Custom duck already exists");
+        isCustomExisting[webpHash] = true;
         uint256 tokenId = 200 + (_customCounter++);
         address pointer = SSTORE2.write(bytes(webp));
         duckIdToWEBP[tokenId] = pointer;
         _safeMint(msg.sender, tokenId);
         customDuckHatchedTimes[tokenId] = block.timestamp;
-        emit DuckMinted(DuckType.Custom, msg.sender, tokenId, tozziDuckPrice);
+        emit DuckMinted(
+            DuckType.Custom,
+            msg.sender,
+            tokenId,
+            machineSetting.tozziDuckPrice
+        );
     }
 
     function tokenURI(uint256 tokenId)
@@ -206,20 +212,24 @@ contract TheAmazingTozziDuckMachine is ERC721, OwnableByERC721 {
         returns (string memory)
     {
         string memory webp = string(SSTORE2.read(duckIdToWEBP[tokenId]));
-        string memory svg = string(
-            abi.encodePacked(
-                "<svg width='400' height='400' viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' shape-rendering='crispEdges' preserveAspectRatio='xMinYMin slice'><image width='400' height='400' xlink:href='data:image/webp;base64,",
-                webp,
-                "'/></svg>"
-            )
-        );
+        if (tokenId < 200)
+            webp = string(abi.encodePacked("data:image/webp;base64,", webp));
         return
             string(
                 abi.encodePacked(
                     "data:application/json;base64,",
                     Base64.encode(
                         bytes(
-                            abi.encodePacked('{"name":"', "Tozzi Duck #", tokenId.toString(), '", "description":"', "Hell yeah!", '", "image_data": "', svg, '"}')
+                            abi.encodePacked(
+                                '{"name":"',
+                                "Tozzi Duck #",
+                                tokenId.toString(),
+                                '", "description":"',
+                                "Hell yeah!",
+                                '", "image": "',
+                                webp,
+                                '"}'
+                            )
                         )
                     )
                 )
