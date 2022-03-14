@@ -13,8 +13,8 @@ describe("TheAmazingTozziDuckMachine", function () {
   it("deploy and init the smart contracts", async function () {
     [signer1, signer2] = await ethers.getSigners();
 
-    console.log("signer1", signer1.address);
-    console.log("signer2", signer2.address);
+    // console.log("signer1", signer1.address);
+    // console.log("signer2", signer2.address);
 
     const ChainsawProjects = await ethers.getContractFactory(
       "ChainsawProjects",
@@ -22,7 +22,7 @@ describe("TheAmazingTozziDuckMachine", function () {
     );
     chainsawProjects = await ChainsawProjects.deploy();
     await chainsawProjects.deployed();
-    console.log("ChainsawProject address", chainsawProjects.address);
+    // console.log("ChainsawProject address", chainsawProjects.address);
 
     const TheAmazingTozziDuckMachine = await ethers.getContractFactory(
       "TheAmazingTozziDuckMachine",
@@ -32,10 +32,10 @@ describe("TheAmazingTozziDuckMachine", function () {
       ethers.utils.getAddress(chainsawProjects.address)
     );
     await theAmazingTozziDuckMachine.deployed();
-    console.log(
-      "TheAmazingTozziDuckMachine address",
-      theAmazingTozziDuckMachine.address
-    );
+    // console.log(
+    //   "TheAmazingTozziDuckMachine address",
+    //   theAmazingTozziDuckMachine.address
+    // );
 
     const addProjectTx = await chainsawProjects.addProject(
       "Tozzi Ducks",
@@ -63,7 +63,7 @@ describe("TheAmazingTozziDuckMachine", function () {
         .connect(signer2)
         .mintTozziDuck(index, duck.webp, duck.proof, { value: 2 });
       await mintTozziDuckTx.wait();
-      console.log("duck token id ===== ", index);
+      // console.log("duck token id ===== ", index);
     });
   });
 
@@ -90,22 +90,22 @@ describe("TheAmazingTozziDuckMachine", function () {
     const tokenURITx = await theAmazingTozziDuckMachine
       .connect(signer2)
       .tokenURI(0);
-    console.log("tokenURITx ===== ", tokenURITx);
+    // console.log("tokenURITx ===== ", tokenURITx);
   });
 
   it("withdraw", async function () {
-    console.log(
-      "machine balance",
-      await ethers.provider.getBalance(theAmazingTozziDuckMachine.address)
-    );
+    // console.log(
+    //   "machine balance",
+    //   await ethers.provider.getBalance(theAmazingTozziDuckMachine.address)
+    // );
     const signer2Address = await signer2.getAddress();
     const withdrawTx = await theAmazingTozziDuckMachine
       .connect(signer1)
       .withdraw(signer2Address, 0);
     await withdrawTx.wait();
-    console.log(
-      "signer2 balance",
-      await ethers.provider.getBalance(signer2Address)
-    );
+    // console.log(
+    //   "signer2 balance",
+    //   await ethers.provider.getBalance(signer2Address)
+    // );
   });
 });
