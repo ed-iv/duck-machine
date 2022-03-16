@@ -49,7 +49,7 @@ describe("TheAmazingTozziDuckMachine", function () {
         .connect(signer2)
         .mintTozziDuck(index, duck.webp, duck.proof, { value: 1 });
       await mintTozziDuckTx.wait();
-      console.log("duck token id ===== ", index);
+      // console.log("duck token id ===== ", index);
     });
   });
 
