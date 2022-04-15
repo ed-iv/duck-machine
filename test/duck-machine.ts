@@ -1,5 +1,6 @@
 /* eslint-disable node/no-extraneous-import */
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
+import { expect } from "chai";
 import "hardhat-gas-reporter";
 import { TheAmazingTozziDuckMachine } from "../typechain";
 import duckData from "../duck-data/proofs.json";
@@ -29,28 +30,34 @@ describe("TheAmazingTozziDuckMachine", function () {
     );
   });
 
-  it("set setting functions", async function () {
-    const setMachineSettingTx = await theAmazingTozziDuckMachine
+  it("set config functions", async function () {
+    const setMachineConfigTx = await theAmazingTozziDuckMachine
       // .connect(signer2)
-      .setMachineSetting({
+      .setMachineConfig({
         tozziDuckPrice: ethers.BigNumber.from(1),
         customDuckPrice: ethers.BigNumber.from(1),
         maxCustomDucks: ethers.BigNumber.from(200),
         tozziDucksEnabled: true,
         customDucksEnabled: true,
       });
-    await setMachineSettingTx.wait();
+    await setMachineConfigTx.wait();
   });
 
   it("mint tozzi duck tokens", async function () {
     const data = Object.values(duckData);
-    data.map(async (duck, index) => {
+    expect(await theAmazingTozziDuckMachine.totalSupply()).to.be.eq(1);
+    expect(await theAmazingTozziDuckMachine.tokenByIndex(0)).to.be.eq(420);
+    await data.map(async (duck, index) => {
       const mintTozziDuckTx = await theAmazingTozziDuckMachine
         .connect(signer2)
         .mintTozziDuck(index, duck.webp, duck.proof, { value: 1 });
       await mintTozziDuckTx.wait();
-      // console.log("duck token id ===== ", index);
+      console.log("duck token id ===== ", index);
+      console.log("total supply", await theAmazingTozziDuckMachine.totalSupply());
+
     });
+    await expect(await theAmazingTozziDuckMachine.totalSupply()).to.be.eq(2);
+    expect(await theAmazingTozziDuckMachine.tokenByIndex(1)).to.be.eq(0);
   });
 
   it("mint custom duck tokens", async function () {

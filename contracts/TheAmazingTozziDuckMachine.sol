@@ -40,12 +40,12 @@ pragma solidity 0.8.4;
  *            __  /  _  __ \__  /__  /_  /    __  / / /  / / /  ___/_  //_/_  ___/
  *           _  /   / /_/ /_  /__  /_  /     _  /_/ // /_/ // /__ _  ,<  _(__  )
  *            /_/    \____/_____/____/_/      /_____/ \__,_/ \___/ /_/|_| /____/
- *                                                                   *
+ *                                                                   
  */
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {Base64} from "./lib/base64.sol";
 import "@rari-capital/solmate/src/utils/SSTORE2.sol";
 import "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
@@ -55,7 +55,7 @@ enum DuckType {
     Custom
 }
 
-contract TheAmazingTozziDuckMachine is ERC721 {
+contract TheAmazingTozziDuckMachine is ERC721Enumerable {
     using Strings for uint256;
 
     uint256 private constant _tozziDucks = 200;
@@ -64,14 +64,14 @@ contract TheAmazingTozziDuckMachine is ERC721 {
     uint256 private _customCounter;
     string private _ownershipTokenURI;
 
-    struct MachineSetting {
+    struct MachineConfig {
         uint256 tozziDuckPrice;
         uint256 customDuckPrice;
         uint256 maxCustomDucks;
         bool tozziDucksEnabled;
         bool customDucksEnabled;
     }
-    MachineSetting public machineSetting;
+    MachineConfig public machineConfig;
 
     uint256 public constant BURN_WINDOW = 1 weeks;
     uint256 public constant OWNERSHIP_TOKEN_ID = 420;
@@ -80,8 +80,8 @@ contract TheAmazingTozziDuckMachine is ERC721 {
     mapping(bytes32 => bool) public isCustomExisting;
     mapping(uint256 => uint256) public customDuckHatchedTimes;
 
-    event MachineSettingUpdated(
-        MachineSetting indexed machineSetting,
+    event MachineConfigUpdated(
+        MachineConfig indexed machineConfig,
         address indexed who
     );
 
@@ -114,9 +114,9 @@ contract TheAmazingTozziDuckMachine is ERC721 {
         _safeMint(_msgSender(), OWNERSHIP_TOKEN_ID);
     }
 
-    function setMachineSetting(MachineSetting memory setting) public onlyOwner {
-        machineSetting = setting;
-        emit MachineSettingUpdated(setting, ownerOf(OWNERSHIP_TOKEN_ID));
+    function setMachineConfig(MachineConfig memory setting) public onlyOwner {
+        machineConfig = setting;
+        emit MachineConfigUpdated(setting, ownerOf(OWNERSHIP_TOKEN_ID));
     }
 
     function withdraw(address recipient, uint256 amount) public onlyOwner {
@@ -159,11 +159,11 @@ contract TheAmazingTozziDuckMachine is ERC721 {
         bytes32[] calldata merkleProof
     ) public payable {
         require(
-            machineSetting.tozziDucksEnabled,
+            machineConfig.tozziDucksEnabled,
             "Tozzi Ducks Minting is disabled."
         );
         require(
-            msg.value == machineSetting.tozziDuckPrice,
+            msg.value == machineConfig.tozziDuckPrice,
             "msg.value != duck price"
         );
         bytes32 node = keccak256(abi.encodePacked(duckId, webp));
@@ -178,7 +178,7 @@ contract TheAmazingTozziDuckMachine is ERC721 {
             DuckType.Tozzi,
             _msgSender(),
             duckId,
-            machineSetting.tozziDuckPrice
+            machineConfig.tozziDuckPrice
         );
     }
 
@@ -186,15 +186,15 @@ contract TheAmazingTozziDuckMachine is ERC721 {
         if (_customCounter + _tozziDucks == OWNERSHIP_TOKEN_ID)
             _customCounter++;
         require(
-            machineSetting.customDucksEnabled,
+            machineConfig.customDucksEnabled,
             "Custom Ducks Minting is disabled."
         );
         require(
-            _customCounter < machineSetting.maxCustomDucks,
+            _customCounter < machineConfig.maxCustomDucks,
             "Custom duck limit reached."
         );
         require(
-            msg.value == machineSetting.customDuckPrice,
+            msg.value == machineConfig.customDuckPrice,
             "msg.value != duck price"
         );
         bytes32 webpHash = keccak256(abi.encodePacked(webp));
@@ -209,7 +209,7 @@ contract TheAmazingTozziDuckMachine is ERC721 {
             DuckType.Custom,
             _msgSender(),
             tokenId,
-            machineSetting.tozziDuckPrice
+            machineConfig.tozziDuckPrice
         );
     }
 
