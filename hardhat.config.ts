@@ -32,7 +32,7 @@ const config: HardhatUserConfig = {
         runs: 1000,
       },
     },
-  }, 
+  },
   networks: {
     rinkeby: {
       url: process.env.RINKEBY_URL || "",
@@ -44,11 +44,11 @@ const config: HardhatUserConfig = {
     enabled: process.env.REPORT_GAS !== undefined,
     currency: "USD",
     coinmarketcap: process.env.COIN_MARKET_CAP_KEY || "",
-    gasPrice: 0
+    gasPrice: 0,
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
-  }
+  },
 };
 
 export default config;

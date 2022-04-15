@@ -32,7 +32,7 @@ describe("TheAmazingTozziDuckMachine", function () {
 
   it("set config functions", async function () {
     const setMachineConfigTx = await theAmazingTozziDuckMachine
-      // .connect(signer2)
+      .connect(signer1)
       .setMachineConfig({
         tozziDuckPrice: ethers.BigNumber.from(1),
         customDuckPrice: ethers.BigNumber.from(1),
@@ -47,16 +47,20 @@ describe("TheAmazingTozziDuckMachine", function () {
     const data = Object.values(duckData);
     expect(await theAmazingTozziDuckMachine.totalSupply()).to.be.eq(1);
     expect(await theAmazingTozziDuckMachine.tokenByIndex(0)).to.be.eq(420);
-    await data.map(async (duck, index) => {
-      const mintTozziDuckTx = await theAmazingTozziDuckMachine
-        .connect(signer2)
-        .mintTozziDuck(index, duck.webp, duck.proof, { value: 1 });
-      await mintTozziDuckTx.wait();
-      console.log("duck token id ===== ", index);
-      console.log("total supply", await theAmazingTozziDuckMachine.totalSupply());
-
-    });
-    await expect(await theAmazingTozziDuckMachine.totalSupply()).to.be.eq(2);
+    await Promise.all(
+      data.map(async (duck, index) => {
+        const mintTozziDuckTx = await theAmazingTozziDuckMachine
+          .connect(signer2)
+          .mintTozziDuck(index, duck.webp, duck.proof, { value: 1 });
+        await mintTozziDuckTx.wait();
+        console.log("duck token id ===== ", index);
+        console.log(
+          "total supply",
+          await theAmazingTozziDuckMachine.totalSupply()
+        );
+      })
+    );
+    await expect(await theAmazingTozziDuckMachine.totalSupply()).to.be.eq(201);
     expect(await theAmazingTozziDuckMachine.tokenByIndex(1)).to.be.eq(0);
   });
 
