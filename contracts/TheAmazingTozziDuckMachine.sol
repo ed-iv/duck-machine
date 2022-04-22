@@ -61,6 +61,19 @@ enum MintStatus {
     Whitelist
 }
 
+struct MachineConfig {
+    uint256 tozziDuckPrice;
+    uint256 customDuckPrice;
+    uint256 maxCustomDucks;
+    MintStatus tozziDuckMintStatus;
+    MintStatus customDuckMintStatus;
+}
+
+struct DuckAllowance {
+    uint128 tozziDuckAllowance;
+    uint128 customDuckAllowance;
+}
+
 contract TheAmazingTozziDuckMachine is ERC721Enumerable {
     using Strings for uint256;
 
@@ -68,26 +81,11 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
     bytes32 private constant _MERKLE_ROOT =
         0x0885f98e28c44d2dd7b21d5b9e2661e99e90482a771a419967dd2c9c8edfb0d7;
     uint256 private _customCounter;
-    string private _ownershipTokenURI;
-
-    struct MachineConfig {
-        uint256 tozziDuckPrice;
-        uint256 customDuckPrice;
-        uint256 maxCustomDucks;
-        MintStatus tozziDuckMintStatus;
-        MintStatus customDuckMintStatus;
-    }
-    MachineConfig public machineConfig;
-
-    struct DuckAllowance {
-        uint128 tozziDuckAllowance;
-        uint128 customDuckAllowance;
-    }
-    mapping(address => DuckAllowance) public whitelist;
-
+    string private _ownershipTokenURI;        
     uint256 public constant BURN_WINDOW = 1 weeks;
     uint256 public constant OWNERSHIP_TOKEN_ID = 420;
-
+    MachineConfig public machineConfig;
+    mapping(address => DuckAllowance) public whitelist;
     mapping(uint256 => address) public duckIdToWEBP;
     mapping(bytes32 => bool) public isCustomExisting;
     mapping(uint256 => uint256) public customDuckHatchedTimes;
@@ -135,9 +133,7 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         address who,
         uint128 tozziDuckAllowance,
         uint128 customDuckAllowance
-    ) public onlyOwner {
-        require(tozziDuckAllowance > 0, "tozziDuckAllowance is zero");
-        require(customDuckAllowance > 0, "customDuckAllowance is zero");
+    ) public onlyOwner {        
         whitelist[who] = DuckAllowance(tozziDuckAllowance, customDuckAllowance);
     }
 
