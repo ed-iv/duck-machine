@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
 import { exit } from "process";
+import { TheAmazingTozziDuckMachine__factory } from "../typechain";
 
 async function main() {
   const [deployer] = await ethers.getSigners();
