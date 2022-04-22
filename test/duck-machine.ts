@@ -1,5 +1,5 @@
 /* eslint-disable node/no-extraneous-import */
-import { ethers, network } from "hardhat";
+import { ethers } from "hardhat";
 import { expect } from "chai";
 import "hardhat-gas-reporter";
 import { TheAmazingTozziDuckMachine } from "../typechain";
@@ -37,10 +37,17 @@ describe("TheAmazingTozziDuckMachine", function () {
         tozziDuckPrice: ethers.BigNumber.from(1),
         customDuckPrice: ethers.BigNumber.from(1),
         maxCustomDucks: ethers.BigNumber.from(200),
-        tozziDucksEnabled: true,
-        customDucksEnabled: true,
+        tozziDuckMintStatus: 2,
+        customDuckMintStatus: 2,
       });
     await setMachineConfigTx.wait();
+  });
+
+  it("set duck allowance", async function () {
+    const setDuckAllowanceTx = await theAmazingTozziDuckMachine
+      .connect(signer1)
+      .setDuckAllowance(signer2.address, 200, 200);
+    await setDuckAllowanceTx.wait();
   });
 
   it("mint tozzi duck tokens", async function () {

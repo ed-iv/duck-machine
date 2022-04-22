@@ -55,6 +55,12 @@ enum DuckType {
     Custom
 }
 
+enum MintStatus {
+    Enabled,
+    Disabled,
+    Whitelist
+}
+
 contract TheAmazingTozziDuckMachine is ERC721Enumerable {
     using Strings for uint256;
 
@@ -68,10 +74,16 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         uint256 tozziDuckPrice;
         uint256 customDuckPrice;
         uint256 maxCustomDucks;
-        bool tozziDucksEnabled;
-        bool customDucksEnabled;
+        MintStatus tozziDuckMintStatus;
+        MintStatus customDuckMintStatus;
     }
     MachineConfig public machineConfig;
+
+    struct DuckAllowance {
+        uint128 tozziDuckAllowance;
+        uint128 customDuckAllowance;
+    }
+    mapping(address => DuckAllowance) public whitelist;
 
     uint256 public constant BURN_WINDOW = 1 weeks;
     uint256 public constant OWNERSHIP_TOKEN_ID = 420;
@@ -119,6 +131,16 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         emit MachineConfigUpdated(setting, ownerOf(OWNERSHIP_TOKEN_ID));
     }
 
+    function setDuckAllowance(
+        address who,
+        uint128 tozziDuckAllowance,
+        uint128 customDuckAllowance
+    ) public onlyOwner {
+        require(tozziDuckAllowance > 0, "tozziDuckAllowance is zero");
+        require(customDuckAllowance > 0, "customDuckAllowance is zero");
+        whitelist[who] = DuckAllowance(tozziDuckAllowance, customDuckAllowance);
+    }
+
     function withdraw(address recipient, uint256 amount) public onlyOwner {
         require(
             amount <= address(this).balance,
@@ -159,13 +181,20 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         bytes32[] calldata merkleProof
     ) public payable {
         require(
-            machineConfig.tozziDucksEnabled,
+            machineConfig.tozziDuckMintStatus != MintStatus.Disabled,
             "Tozzi Ducks Minting is disabled."
         );
         require(
             msg.value == machineConfig.tozziDuckPrice,
-            "msg.value != duck price"
+            "msg.value != tozzi duck price"
         );
+        if (machineConfig.tozziDuckMintStatus == MintStatus.Whitelist) {
+            require(
+                whitelist[_msgSender()].tozziDuckAllowance > 0,
+                "not allowance"
+            );
+            whitelist[_msgSender()].tozziDuckAllowance--;
+        }
         bytes32 node = keccak256(abi.encodePacked(duckId, webp));
         require(
             MerkleProof.verify(merkleProof, _MERKLE_ROOT, node),
@@ -186,8 +215,8 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         if (_customCounter + _tozziDucks == OWNERSHIP_TOKEN_ID)
             _customCounter++;
         require(
-            machineConfig.customDucksEnabled,
-            "Custom Ducks Minting is disabled."
+            machineConfig.customDuckMintStatus != MintStatus.Disabled,
+            "Tozzi Ducks Minting is disabled."
         );
         require(
             _customCounter < machineConfig.maxCustomDucks,
@@ -195,8 +224,15 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         );
         require(
             msg.value == machineConfig.customDuckPrice,
-            "msg.value != duck price"
+            "msg.value != custom duck price"
         );
+        if (machineConfig.customDuckMintStatus == MintStatus.Whitelist) {
+            require(
+                whitelist[_msgSender()].customDuckAllowance > 0,
+                "not allowance"
+            );
+            whitelist[_msgSender()].customDuckAllowance--;
+        }
         bytes32 webpHash = keccak256(abi.encodePacked(webp));
         require(!isCustomExisting[webpHash], "Custom duck already exists.");
         isCustomExisting[webpHash] = true;
