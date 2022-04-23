@@ -1,4 +1,3 @@
-/* eslint-disable node/no-extraneous-import */
 import { ethers } from "hardhat";
 import { expect } from "chai";
 import "hardhat-gas-reporter";
@@ -6,6 +5,8 @@ import { TheAmazingTozziDuckMachine } from "../typechain";
 import duckData from "../duck-data/proofs.json";
 
 describe("TheAmazingTozziDuckMachine", function () {
+
+  
   let theAmazingTozziDuckMachine: TheAmazingTozziDuckMachine,
     signer1: any,
     signer2: any;
@@ -30,25 +31,25 @@ describe("TheAmazingTozziDuckMachine", function () {
     );
   });
 
-  it("set config functions", async function () {
-    const setMachineConfigTx = await theAmazingTozziDuckMachine
-      .connect(signer1)
-      .setMachineConfig({
-        tozziDuckPrice: ethers.BigNumber.from(1),
-        customDuckPrice: ethers.BigNumber.from(1),
-        maxCustomDucks: ethers.BigNumber.from(200),
-        tozziDuckMintStatus: 2,
-        customDuckMintStatus: 2,
-      });
-    await setMachineConfigTx.wait();
-  });
+  // it("set config functions", async function () {
+  //   const setMachineConfigTx = await theAmazingTozziDuckMachine
+  //     .connect(signer1)
+  //     .setMachineConfig({
+  //       tozziDuckPrice: ethers.BigNumber.from(1),
+  //       customDuckPrice: ethers.BigNumber.from(1),
+  //       maxCustomDucks: ethers.BigNumber.from(200),
+  //       tozziDuckMintStatus: 2,
+  //       customDuckMintStatus: 2,
+  //     });
+  //   await setMachineConfigTx.wait();
+  // });
 
-  it("set duck allowance", async function () {
-    const setDuckAllowanceTx = await theAmazingTozziDuckMachine
-      .connect(signer1)
-      .setDuckAllowance(signer2.address, 200, 200);
-    await setDuckAllowanceTx.wait();
-  });
+  // it("set duck allowance", async function () {
+  //   const setDuckAllowanceTx = await theAmazingTozziDuckMachine
+  //     .connect(signer1)
+  //     .setDuckAllowance(signer2.address, 200, 200);
+  //   await setDuckAllowanceTx.wait();
+  // });
 
   it("mint tozzi duck tokens", async function () {
     const data = Object.values(duckData);
@@ -86,7 +87,7 @@ describe("TheAmazingTozziDuckMachine", function () {
   it("burn custom duck", async function () {
     const burnCustomDuckTx = await theAmazingTozziDuckMachine
       .connect(signer1)
-      .burnRenegadeDuck(200, "Reason");
+      .burnRenegadeDuck(201, "Reason");
     await burnCustomDuckTx.wait();
   });
 
