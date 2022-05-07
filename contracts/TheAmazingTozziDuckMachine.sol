@@ -324,13 +324,13 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         string memory attributes = string(
             bytes(
                 abi.encodePacked(
-                    "[{'trait_type':'Duck Type','value':'",
+                    '[{"trait_type":"Duck Type","value":"',
                     duckType,
-                    "'},{'trait_type':'Creator','value':'",
+                    '"},{"trait_type":"Creator","value":"',
                     creator,
-                    "'},{'trait_type':'Duck Image Complexity','value':'",
+                    '"},{"trait_type":"Duck Image Complexity","value":"',
                     bytes(webp).length.toString(),
-                    "','display_type':'number'}]"
+                    '","display_type":"number"}]'
                 )
             )
         );
@@ -347,9 +347,9 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
                                 description,
                                 '", "image": "',
                                 webp,
-                                '", "attributes":"',
+                                '", "attributes":',
                                 attributes,
-                                '"}'
+                                '}'
                             )
                         )
                     )
