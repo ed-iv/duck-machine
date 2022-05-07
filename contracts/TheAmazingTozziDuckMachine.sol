@@ -320,7 +320,7 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         }
         string memory description = bytes(profile.description).length > 0
             ? profile.description
-            : "N/A";
+            : string(name);
         string memory attributes = string(
             bytes(
                 abi.encodePacked(
@@ -330,7 +330,7 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
                     creator,
                     '"},{"trait_type":"Duck Image Complexity","value":"',
                     bytes(webp).length.toString(),
-                    '","display_type":"number"}]'
+                    '"]'
                 )
             )
         );
