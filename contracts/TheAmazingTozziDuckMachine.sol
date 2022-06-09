@@ -103,8 +103,7 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
     using Strings for uint256;
 
     uint256 private constant _tozziDucks = 200;
-    bytes32 private constant _MERKLE_ROOT =
-        0x0885f98e28c44d2dd7b21d5b9e2661e99e90482a771a419967dd2c9c8edfb0d7;
+    bytes32 private constant _MERKLE_ROOT = 0x0885f98e28c44d2dd7b21d5b9e2661e99e90482a771a419967dd2c9c8edfb0d7;
     uint256 private _customCounter;
     string private _ownershipTokenURI;
     uint256 public constant BURN_WINDOW = 1 weeks;
@@ -308,7 +307,7 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
             creator = "Jim Tozzi";
         } else {
             duckType = "Custom";
-            creator = string(abi.encodePacked(ownerOf(tokenId)));
+            creator = string(abi.encodePacked(address(ownerOf(tokenId))));
         }
         DuckProfile memory profile = duckProfiles[tokenId];
         bytes memory name = abi.encodePacked(
@@ -316,7 +315,7 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
             tokenId.toString()
         );
         if (bytes(profile.name).length > 0) {
-            name = abi.encode(name, " - ", profile.name);
+            name = abi.encodePacked(name, " - ", profile.name);
         }
         string memory description = bytes(profile.description).length > 0
             ? profile.description
