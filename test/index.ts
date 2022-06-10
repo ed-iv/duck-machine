@@ -54,6 +54,13 @@ describe("test TheAmazingTozziDuckMachine", () => {
     expect(await duckMachine.tokenByIndex(0)).to.be.eq(ownershipTokenId);
   });
 
+  describe("Misc", () => {
+    it("Can convert an address to a string", async () => {
+      const user1Address = await user1.getAddress();
+      expect(await duckMachine.addressToString(user1Address)).to.be.eq(user1Address.toLowerCase());
+    });    
+  });
+
   describe("Machine Configuration", () => {
     it("Initializes the machine with correct default configuration", async () => {
       const owner = await duckMachine.ownerOf(ownershipTokenId);

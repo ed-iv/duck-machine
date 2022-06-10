@@ -100,8 +100,8 @@ struct DuckProfile {
 }
 
 contract TheAmazingTozziDuckMachine is ERC721Enumerable {
-    using Strings for uint256;
-
+    using Strings for uint256;    
+    
     uint256 private constant _tozziDucks = 200;
     bytes32 private constant _MERKLE_ROOT = 0x0885f98e28c44d2dd7b21d5b9e2661e99e90482a771a419967dd2c9c8edfb0d7;
     uint256 private _customCounter;
@@ -291,6 +291,10 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         );
     }
 
+    function addressToString(address _address) public pure returns (string memory) {
+        return Strings.toHexString(uint256(uint160(_address)), 20);
+    }
+
     function tokenURI(uint256 tokenId)
         public
         view
@@ -307,7 +311,7 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
             creator = "Jim Tozzi";
         } else {
             duckType = "Custom";
-            creator = string(abi.encodePacked(address(ownerOf(tokenId))));
+            creator = string(abi.encodePacked(addressToString(ownerOf(tokenId))));
         }
         DuckProfile memory profile = duckProfiles[tokenId];
         bytes memory name = abi.encodePacked(
@@ -329,7 +333,7 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
                     creator,
                     '"},{"trait_type":"Duck Image Complexity","value":"',
                     bytes(webp).length.toString(),
-                    '"]'
+                    '"}]'
                 )
             )
         );
