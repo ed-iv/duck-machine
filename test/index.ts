@@ -258,6 +258,7 @@ describe("test TheAmazingTozziDuckMachine", () => {
       const user2Address = await user2.getAddress();
       for (let i = 0; i < 10; i++) {
         expect(await duckMachine.ownerOf(200 + i)).to.be.eq(user2Address);
+        expect(await duckMachine.duckCreators(200 + i)).to.be.eq('foo');
       }
       const events = await duckMachine.queryFilter(
         duckMachine.filters.DuckMinted()

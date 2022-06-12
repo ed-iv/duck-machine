@@ -311,7 +311,7 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
             creator = "Jim Tozzi";
         } else {
             duckType = "Custom";
-            creator = string(abi.encodePacked(addressToString(ownerOf(tokenId))));
+            creator = string(abi.encodePacked(addressToString(duckCreators[tokenId])));
         }
         DuckProfile memory profile = duckProfiles[tokenId];
         bytes memory name = abi.encodePacked(
