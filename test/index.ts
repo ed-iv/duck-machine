@@ -54,12 +54,12 @@ describe("test TheAmazingTozziDuckMachine", () => {
     expect(await duckMachine.tokenByIndex(0)).to.be.eq(ownershipTokenId);
   });
 
-  describe("Misc", () => {
-    it("Can convert an address to a string", async () => {
-      const user1Address = await user1.getAddress();
-      expect(await duckMachine.addressToString(user1Address)).to.be.eq(user1Address.toLowerCase());
-    });    
-  });
+  // describe("Misc", () => {
+  //   it("Can convert an address to a string", async () => {
+  //     const user1Address = await user1.getAddress();
+  //     expect(await duckMachine.addressToString(user1Address)).to.be.eq(user1Address.toLowerCase());
+  //   });    
+  // });
 
   describe("Machine Configuration", () => {
     it("Initializes the machine with correct default configuration", async () => {
@@ -258,7 +258,7 @@ describe("test TheAmazingTozziDuckMachine", () => {
       const user2Address = await user2.getAddress();
       for (let i = 0; i < 10; i++) {
         expect(await duckMachine.ownerOf(200 + i)).to.be.eq(user2Address);
-        expect(await duckMachine.duckCreators(200 + i)).to.be.eq('foo');
+        expect(await duckMachine.duckCreators(200 + i)).to.be.eq('0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC');
       }
       const events = await duckMachine.queryFilter(
         duckMachine.filters.DuckMinted()

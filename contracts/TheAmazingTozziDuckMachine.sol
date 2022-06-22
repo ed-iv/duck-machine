@@ -43,109 +43,36 @@ pragma solidity 0.8.4;
  *
  */
 
+import "./interfaces/ITheAmazingTozziDuckMachine.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import {Base64} from "./lib/base64.sol";
 import "@rari-capital/solmate/src/utils/SSTORE2.sol";
 import "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
+import {Base64} from "./lib/base64.sol";
 
-error Unauthorized();
-error ThatAintNoDuck();
-error MintingDisabled(DuckType duckType);
-error IncorrectDuckPrice();
-error InvalidProof();
-error BurnWindowHasPassed();
-error InsufficientFunds();
-error InvalidDuckId();
-error AmountMustBeNonZero();
-error InsufficientDuckAllowance();
-error CustomDuckLimitReached();
-error DuckAlreadyExists();
 
-enum DuckType {
-    Tozzi,
-    Custom
-}
-
-enum MintStatus {
-    Enabled,
-    Disabled,
-    duckAllowances
-}
-
-struct MachineConfig {
-    uint256 tozziDuckPrice;
-    uint256 customDuckPrice;
-    uint256 maxCustomDucks;
-    MintStatus tozziDuckMintStatus;
-    MintStatus customDuckMintStatus;
-}
-
-struct DuckAllowance {
-    uint128 tozziDuckAllowance;
-    uint128 customDuckAllowance;
-}
-
-struct DuckStance {
-    string stance;
-    uint256 timeout;
-}
-
-struct DuckProfile {
-    string name;
-    string description;
-    DuckStance stance;
-    uint256 updated;
-}
-
-contract TheAmazingTozziDuckMachine is ERC721Enumerable {
+contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumerable, Ownable {
     using Strings for uint256;    
     
-    uint256 private constant _tozziDucks = 200;
-    bytes32 private constant _MERKLE_ROOT = 0x0885f98e28c44d2dd7b21d5b9e2661e99e90482a771a419967dd2c9c8edfb0d7;
+    uint256 private constant TOZZI_DUCKS = 200;
+    bytes32 private constant MERKLE_ROOT = 0x0885f98e28c44d2dd7b21d5b9e2661e99e90482a771a419967dd2c9c8edfb0d7;
     uint256 private _customCounter;
     string private _ownershipTokenURI;
-    uint256 public constant BURN_WINDOW = 1 weeks;
+    uint256 private constant BURN_WINDOW = 1 weeks;
     uint256 public constant OWNERSHIP_TOKEN_ID = 420;
     MachineConfig public machineConfig;
     mapping(uint256 => address) public duckCreators;
     mapping(address => DuckAllowance) public duckAllowances;
+    mapping(string => bool) public duckStatusOptions;
+    mapping(uint256 => string) public duckStatuses;
     mapping(uint256 => DuckProfile) public duckProfiles;
     mapping(uint256 => address) public duckIdToWEBP;
     mapping(bytes32 => bool) public duckExists;
     mapping(uint256 => uint256) public customDuckHatchedTimes;
-
-    event MachineConfigUpdated(
-        address indexed who,
-        uint256 tozziDuckPrice,
-        uint256 customDuckPrice,
-        uint256 maxCustomDucks,
-        MintStatus tozziDuckMintStatus,
-        MintStatus customDuckMintStatus
-    );
-
-    event DuckMinted(
-        uint256 indexed tokenId,
-        address indexed who,
-        DuckType indexed duckType,
-        uint256 price
-    );
-
-    event CustomDuckBurned(
-        uint256 duckId,
-        address admin,
-        address owner,
-        string reason
-    );
-
-    event DuckProfileUpdated(
-        uint256 duckId,
-        address updatedBy,
-        DuckProfile profile
-    );
-
-    modifier onlyOwner() {
+    
+    modifier onlyMachineOwner() {
         if (ownerOf(OWNERSHIP_TOKEN_ID) != _msgSender()) revert Unauthorized();
         _;
     }
@@ -158,15 +85,15 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         _safeMint(_msgSender(), OWNERSHIP_TOKEN_ID);
     }
 
-    function setMachineConfig(MachineConfig memory config) public onlyOwner {
-        machineConfig = config;
+    function setMachineConfig(MachineConfig calldata _machineConfig) external override onlyMachineOwner {
+        machineConfig = _machineConfig;
         emit MachineConfigUpdated(
             ownerOf(OWNERSHIP_TOKEN_ID),
-            config.tozziDuckPrice,
-            config.customDuckPrice,
-            config.maxCustomDucks,
-            config.tozziDuckMintStatus,
-            config.customDuckMintStatus
+            _machineConfig.tozziDuckPrice,
+            _machineConfig.customDuckPrice,
+            _machineConfig.maxCustomDucks,
+            _machineConfig.tozziDuckMintStatus,
+            _machineConfig.customDuckMintStatus
         );
     }
 
@@ -174,7 +101,7 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         address who,
         uint128 tozziDuckAllowance,
         uint128 customDuckAllowance
-    ) public onlyOwner {
+    ) external override onlyMachineOwner {
         if (tozziDuckAllowance < 0 || customDuckAllowance < 0)
             revert InsufficientDuckAllowance();
         duckAllowances[who] = DuckAllowance(
@@ -185,38 +112,36 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
 
     function setDuckProfile(
         uint256 tokenId,
-        string memory _name,
-        string memory _description,
-        string memory _stance,
-        uint256 _stanceTimeout
-    ) public {
+        string calldata _name,
+        string calldata _description,
+        bytes calldata _data
+    ) external override onlyMachineOwner {
         if (
             _msgSender() != ownerOf(OWNERSHIP_TOKEN_ID) &&
             _msgSender() != ownerOf(tokenId)
-        ) revert Unauthorized();
-        DuckStance memory newStance = DuckStance(_stance, _stanceTimeout);
+        ) revert Unauthorized();        
         DuckProfile memory newProfile = DuckProfile(
             _name,
             _description,
-            newStance,
-            block.timestamp
+            _data
         );
         duckProfiles[tokenId] = newProfile;
         emit DuckProfileUpdated(tokenId, _msgSender(), newProfile);
     }
 
-    function withdraw(address recipient, uint256 amount) public onlyOwner {
+    function _isEmptyString(string memory str) internal pure returns (bool) {
+        return keccak256(abi.encodePacked(str)) == keccak256(abi.encodePacked(""));
+    }
+
+    function withdraw(address recipient, uint256 amount) external override onlyMachineOwner {
         if (amount > address(this).balance) revert InsufficientFunds();
         if (amount == 0) revert AmountMustBeNonZero();
         SafeTransferLib.safeTransferETH(recipient, amount);
     }
 
-    function burnRenegadeDuck(uint256 duckId, string calldata reason)
-        public
-        onlyOwner
-    {
+    function burnRenegadeDuck(uint256 duckId, string calldata reason) external override onlyMachineOwner {
         if (
-            duckId < _tozziDucks ||
+            duckId < TOZZI_DUCKS ||
             duckId == OWNERSHIP_TOKEN_ID ||
             !_exists(duckId)
         ) revert InvalidDuckId();
@@ -236,7 +161,7 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         uint256 duckId,
         string calldata webp,
         bytes32[] calldata merkleProof
-    ) public payable {
+    ) external override payable {
         if (machineConfig.tozziDuckMintStatus == MintStatus.Disabled)
             revert MintingDisabled(DuckType.Tozzi);
         if (msg.value != machineConfig.tozziDuckPrice)
@@ -247,7 +172,7 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
             duckAllowances[_msgSender()].tozziDuckAllowance--;
         }
         bytes32 node = keccak256(abi.encodePacked(duckId, webp));
-        if (!MerkleProof.verify(merkleProof, _MERKLE_ROOT, node))
+        if (!MerkleProof.verify(merkleProof, MERKLE_ROOT, node))
             revert InvalidProof();
         address pointer = SSTORE2.write(bytes(webp));
         duckIdToWEBP[duckId] = pointer;
@@ -260,7 +185,7 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         );
     }
 
-    function mintCustomDuck(string calldata webp) public payable {
+    function mintCustomDuck(string calldata webp) external override payable {
         if (machineConfig.customDuckMintStatus == MintStatus.Disabled)
             revert MintingDisabled(DuckType.Custom);
         if (_customCounter >= machineConfig.maxCustomDucks)
@@ -272,12 +197,12 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
                 revert InsufficientDuckAllowance();
             duckAllowances[_msgSender()].customDuckAllowance--;
         }
-        if (_customCounter + _tozziDucks == OWNERSHIP_TOKEN_ID)
+        if (_customCounter + TOZZI_DUCKS == OWNERSHIP_TOKEN_ID)
             _customCounter += 1;
         bytes32 webpHash = keccak256(abi.encodePacked(webp));
         if (duckExists[webpHash]) revert DuckAlreadyExists();
         duckExists[webpHash] = true;
-        uint256 tokenId = _tozziDucks + (_customCounter++);
+        uint256 tokenId = TOZZI_DUCKS + (_customCounter++);
         address pointer = SSTORE2.write(bytes(webp));
         duckIdToWEBP[tokenId] = pointer;
         _safeMint(_msgSender(), tokenId);
@@ -291,10 +216,6 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         );
     }
 
-    function addressToString(address _address) public pure returns (string memory) {
-        return Strings.toHexString(uint256(uint160(_address)), 20);
-    }
-
     function tokenURI(uint256 tokenId)
         public
         view
@@ -305,13 +226,13 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
         string memory webp = string(SSTORE2.read(duckIdToWEBP[tokenId]));
         string memory duckType;
         string memory creator;
-        if (tokenId < _tozziDucks) {
+        if (tokenId < TOZZI_DUCKS) {
             webp = string(abi.encodePacked("data:image/webp;base64,", webp));
             duckType = "Tozzi";
             creator = "Jim Tozzi";
         } else {
             duckType = "Custom";
-            creator = string(abi.encodePacked(addressToString(duckCreators[tokenId])));
+            creator = string(abi.encodePacked(_addressToString(duckCreators[tokenId])));
         }
         DuckProfile memory profile = duckProfiles[tokenId];
         bytes memory name = abi.encodePacked(
@@ -331,8 +252,6 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
                     duckType,
                     '"},{"trait_type":"Creator","value":"',
                     creator,
-                    '"},{"trait_type":"Duck Image Complexity","value":"',
-                    bytes(webp).length.toString(),
                     '"}]'
                 )
             )
@@ -358,5 +277,17 @@ contract TheAmazingTozziDuckMachine is ERC721Enumerable {
                     )
                 )
             );
+    }
+
+    function _addressToString(address _address) internal pure returns (string memory) {
+        return Strings.toHexString(uint256(uint160(_address)), 20);
+    }
+
+    function setDuckStatus(uint256 tokenId, string memory status) external {
+        require(_exists(tokenId), "ERC721: owner query for nonexistent token");
+        if (!_isEmptyString(status) && !duckStatusOptions[status]) revert InvalidDuckStatus();
+        if (_msgSender() != ownerOf(tokenId)) revert Unauthorized();
+
+        emit DuckStatusUpdated(tokenId, status, _msgSender());
     }
 }
