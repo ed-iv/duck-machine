@@ -14,7 +14,7 @@ interface ITheAmazingTozziDuckMachine {
     error InsufficientDuckAllowance();
     error CustomDuckLimitReached();
     error DuckAlreadyExists();
-    error InvalidDuckStatus();
+    error InvalidStatusId();
 
     enum DuckType {
         Tozzi,
@@ -47,8 +47,7 @@ interface ITheAmazingTozziDuckMachine {
 
     struct DuckProfile {
         string name;
-        string description;    
-        bytes data;
+        string description;
     }
 
     event MachineConfigUpdated(
@@ -76,8 +75,8 @@ interface ITheAmazingTozziDuckMachine {
 
     event DuckProfileUpdated(
         uint256 duckId,
-        address updatedBy,
-        DuckProfile profile
+        string name,
+        string description
     );
 
     event DuckStatusUpdated(
@@ -86,9 +85,13 @@ interface ITheAmazingTozziDuckMachine {
         address who
     );
 
+    event MOTDSet(string motd);
+
     function setMachineConfig(MachineConfig calldata _machineConfig) external;
+    function setMOTD(string calldata motd) external;
     function setDuckAllowance(address who, uint128 tozziDuckAllowance, uint128 customDuckAllowance) external;
-    function setDuckProfile(uint256 tokenId, string calldata _name, string calldata _description, bytes calldata _data) external;
+    function setDuckStatus(uint256 tokenId, uint8 statusId) external;
+    function setDuckProfile(uint256 tokenId, string calldata _name, string calldata _description) external;
     function withdraw(address recipient, uint256 amount) external;
     function burnRenegadeDuck(uint256 duckId, string calldata reason) external;
     function mintTozziDuck(uint256 duckId, string calldata webp, bytes32[] calldata merkleProof) external payable;
