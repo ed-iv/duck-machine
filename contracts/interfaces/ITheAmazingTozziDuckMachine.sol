@@ -3,11 +3,10 @@ pragma solidity 0.8.4;
 
 interface ITheAmazingTozziDuckMachine {
     error Unauthorized();
-    error ThatAintNoDuck();
     error MintingDisabled(DuckType duckType);
     error IncorrectDuckPrice();
     error InvalidProof();
-    error BurnWindowHasPassed();
+    error BurnWindowPassed();
     error InsufficientFunds();
     error InvalidDuckId();
     error AmountMustBeNonZero();
@@ -74,23 +73,30 @@ interface ITheAmazingTozziDuckMachine {
     );
 
     event DuckProfileUpdated(
-        uint256 duckId,
+        uint256 indexed duckId,
         string name,
         string description
     );
 
     event DuckStatusUpdated(
         uint256 indexed duckId,
-        string indexed status,
-        address who
+        uint8 indexed statusId,        
+        string statusName,
+        address indexed who
     );
 
-    event MOTDSet(string motd);
+    event DuckStatusDefined(
+        uint8 indexed statusId,
+        string statusName
+    );
+
+    event MOTDSet(address indexed owner, string message);
 
     function setMachineConfig(MachineConfig calldata _machineConfig) external;
     function setMOTD(string calldata motd) external;
     function setDuckAllowance(address who, uint128 tozziDuckAllowance, uint128 customDuckAllowance) external;
     function setDuckStatus(uint256 tokenId, uint8 statusId) external;
+    function getDuckStatus(uint256 tokenId) external returns (string memory statusName);
     function setDuckProfile(uint256 tokenId, string calldata _name, string calldata _description) external;
     function withdraw(address recipient, uint256 amount) external;
     function burnRenegadeDuck(uint256 duckId, string calldata reason) external;

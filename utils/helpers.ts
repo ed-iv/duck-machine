@@ -25,3 +25,9 @@ export const mintCustomDuck = async (
     { value: enabledConfig.customDuckPrice }
   );
 };
+
+export const parseMetadata = (dataURI: string) => {
+  const json = Buffer.from(dataURI.substring(29), "base64").toString();
+  const result = JSON.parse(json);
+  return result;
+}

@@ -98,7 +98,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     }
 
     function setMOTD(string calldata motd) external override onlyMachineOwner {
-        emit MOTDSet(motd);
+        emit MOTDSet(_msgSender(), motd);
     }
 
     function setDuckAllowance(
@@ -117,14 +117,21 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     function defineDuckStatus(uint8 statusId, string calldata statusName) external onlyMachineOwner {
         if (statusId == 0) revert InvalidStatusId();
         duckStatusOptions[statusId] = statusName;
+        emit DuckStatusDefined(statusId, statusName);
     }
 
     function setDuckStatus(uint256 tokenId, uint8 statusId) external override {
         require(_exists(tokenId), "ERC721: owner query for nonexistent token");
-        string memory status = duckStatusOptions[statusId];
-        if (_isEmptyString(status) && statusId != 0) revert InvalidStatusId();
+        string memory statusName = duckStatusOptions[statusId];
+        if (_isEmptyString(statusName) && statusId != 0) revert InvalidStatusId();
         if (_msgSender() != ownerOf(tokenId)) revert Unauthorized();
-        emit DuckStatusUpdated(tokenId, status, _msgSender());
+        duckStatuses[tokenId] = statusId;
+        emit DuckStatusUpdated(tokenId, statusId, statusName, _msgSender());
+    }
+
+    function getDuckStatus(uint256 tokenId) external override view returns (string memory statusName) {
+        require(_exists(tokenId), "ERC721: owner query for nonexistent token");
+        return duckStatusOptions[duckStatuses[tokenId]];
     }
 
     function setDuckProfile(
@@ -153,7 +160,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
             !_exists(duckId)
         ) revert InvalidDuckId();
         if (block.timestamp > customDuckHatchedTimes[duckId] + BURN_WINDOW)
-            revert BurnWindowHasPassed();
+            revert BurnWindowPassed();
         address duckOwner = ownerOf(duckId);
         _burn(duckId);
         emit CustomDuckBurned(
