@@ -87,8 +87,7 @@ describe("test TheAmazingTozziDuckMachine", () => {
         duckMachine.filters.MachineConfigUpdated(),
         block
       );
-      expect(events.length).eq(1);
-      console.log(events);
+      expect(events.length).eq(1);      
       const logDescription = duckMachine.interface.parseLog(events[0]);
       expect(logDescription.args.who).to.be.eq(await deployer.getAddress());
       expect(logDescription.args.tozziDuckPrice).to.be.eq(

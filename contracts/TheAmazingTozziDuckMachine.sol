@@ -233,11 +233,33 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         require(_exists(tokenId), "ERC721: owner query for nonexistent token");
         if (tokenId == OWNERSHIP_TOKEN_ID) return _ownershipTokenURI;        
+
+        DuckProfile memory profile = duckProfiles[tokenId];
+        string memory name = string(abi.encodePacked("Tozzi Duck #", tokenId.toString()));        
+        if (bytes(profile.name).length > 0) name = string(abi.encodePacked(name, " - ", profile.name));
+        string memory description = bytes(profile.description).length > 0 ? profile.description : string(name);
+        string memory image = string(abi.encodePacked(
+            "data:image/webp;base64,", string(SSTORE2.read(duckIdToWEBP[tokenId])
+        )));
+        string memory attributes = _generateMetadataAttributes(tokenId);
         
-        string memory webp = string(abi.encodePacked(
-            "data:image/webp;base64,",
-            string(SSTORE2.read(duckIdToWEBP[tokenId]))
-        ));
+        return
+            string(abi.encodePacked(
+                "data:application/json;base64,",
+                Base64.encode(
+                    abi.encodePacked(
+                        '{', 
+                            '"name":"', name, '",', 
+                            '"description":"', description, '",', 
+                            '"image": "', image, '",',
+                            '"attributes":', attributes,
+                        '}'
+                    )
+                )
+            ));
+    }
+
+    function _generateMetadataAttributes(uint256 tokenId) internal view returns (string memory attributes) {
         string memory duckType;
         string memory creator;
         if (tokenId < TOZZI_DUCKS) {
@@ -247,47 +269,13 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
             duckType = "Custom";
             creator = string(abi.encodePacked(_addressToString(duckCreators[tokenId])));
         }
-
-        bytes memory name = abi.encodePacked("Tozzi Duck #", tokenId.toString());
-        DuckProfile memory profile = duckProfiles[tokenId];
-        if (bytes(profile.name).length > 0) {
-            name = abi.encodePacked(name, " - ", profile.name);
-        }
-        string memory description = bytes(profile.description).length > 0
-            ? profile.description
-            : string(name);
-        string memory attributes = string(
-            bytes(
-                abi.encodePacked(
-                    '[{"trait_type":"Duck Type","value":"',
-                    duckType,
-                    '"},{"trait_type":"Creator","value":"',
-                    creator,
-                    '"}]'
-                )
-            )
-        );
-        return
-            string(
-                abi.encodePacked(
-                    "data:application/json;base64,",
-                    Base64.encode(
-                        bytes(
-                            abi.encodePacked(
-                                '{"name":"',
-                                name,
-                                '", "description":"',
-                                description,
-                                '", "image": "',
-                                webp,
-                                '", "attributes":',
-                                attributes,
-                                '}'
-                            )
-                        )
-                    )
-                )
-            );
+        return string(bytes(abi.encodePacked(
+            '[{"trait_type":"Duck Type","value":"',
+            duckType,
+            '"},{"trait_type":"Creator","value":"',
+            creator,
+            '"}]'
+        )));
     }
     
     function _addressToString(address _address) internal pure returns (string memory) {
