@@ -140,7 +140,8 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         bytes32 name,
         bytes32 status,
         string calldata description
-    ) external override onlyMachineOwner {
+    ) onlyExtantDuck(tokenId) external override {
+        if (ownerOf(tokenId) != _msgSender()) revert Unauthorized();
         duckProfiles[tokenId] = DuckProfile(name, status, description);
         emit DuckProfileUpdated(tokenId, name, status, description);
     }
