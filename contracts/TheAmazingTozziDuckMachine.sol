@@ -123,8 +123,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
             customDuckAllowance
         );
     }
-
-    // TODO -tests
+    
     function setDuckTitle(uint256 tokenId, bytes32 title) external override onlyExtantDuck(tokenId) onlyMachineOwner {
         duckTitles[tokenId] = title;
         emit DuckTitleGranted(tokenId, title, _machineOwner());
@@ -136,27 +135,14 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         emit DuckStatusDefined(statusId, statusName);
     }
 
-    function setDuckStatus(uint256 tokenId, uint8 statusId) external override onlyExtantDuck(tokenId) {
-        // require(_exists(tokenId), "ERC721: owner query for nonexistent token");
-        string memory statusName = duckStatusOptions[statusId];
-        if (_isEmptyString(statusName) && statusId != 0) revert InvalidStatusId();
-        if (_msgSender() != ownerOf(tokenId)) revert Unauthorized();
-        duckStatuses[tokenId] = statusId;
-        emit DuckStatusUpdated(tokenId, statusId, statusName, _msgSender());
-    }
-
-    function getDuckStatus(uint256 tokenId) external override view onlyExtantDuck(tokenId) returns (string memory statusName)  {
-        // require(_exists(tokenId), "ERC721: owner query for nonexistent token");
-        return duckStatusOptions[duckStatuses[tokenId]];
-    }
-
     function setDuckProfile(
         uint256 tokenId,
-        string calldata _name,
-        string calldata _description
+        bytes32 name,
+        bytes32 status,
+        string calldata description
     ) external override onlyMachineOwner {
-        duckProfiles[tokenId] = DuckProfile(_name, _description);
-        emit DuckProfileUpdated(tokenId, _name, _description);
+        duckProfiles[tokenId] = DuckProfile(name, status, description);
+        emit DuckProfileUpdated(tokenId, name, status, description);
     }
 
     function _isEmptyString(string memory str) internal pure returns (bool) {
@@ -170,10 +156,8 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     }
 
     function burnRenegadeDuck(uint256 tokenId, string calldata reason) external override onlyExtantDuck(tokenId) onlyMachineOwner {
-        // require(_exists(tokenId), "ERC721: owner query for nonexistent token");
         if (!_isCustomDuck(tokenId)) revert InvalidDuckId();
-        if (block.timestamp > customDuckHatchedTimes[tokenId] + BURN_WINDOW)
-            revert BurnWindowPassed();
+        if (!_isOnProbation(tokenId)) revert BurnWindowPassed();
         _burn(tokenId);
         emit CustomDuckBurned(tokenId, _machineOwner(), ownerOf(tokenId), reason);
     }
@@ -239,48 +223,82 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
 
     function tokenURI(uint256 tokenId) public view override onlyExtantDuck(tokenId) returns (string memory) {
         if (tokenId == OWNERSHIP_TOKEN_ID) return _ownershipTokenURI;        
-        DuckProfile memory profile = duckProfiles[tokenId];
-        string memory name = string(abi.encodePacked("Tozzi Duck #", tokenId.toString()));        
-        if (bytes(profile.name).length > 0) name = string(abi.encodePacked(name, " - ", profile.name));
-        string memory description = bytes(profile.description).length > 0 ? profile.description : string(name);
-        string memory image = string(abi.encodePacked(
-            "data:image/webp;base64,", string(SSTORE2.read(duckIdToWEBP[tokenId])
-        )));
-        string memory attributes = _generateMetadataAttributes(tokenId);
         
-        return
-            string(abi.encodePacked(
-                "data:application/json;base64,",
-                Base64.encode(
-                    abi.encodePacked(
-                        '{', 
-                            '"name":"', name, '",', 
-                            '"description":"', description, '",', 
-                            '"image": "', image, '",',
-                            '"attributes":', attributes,
-                        '}'
-                    )
-                )
-            ));
+        DuckProfile memory profile = duckProfiles[tokenId];
+        string memory name = _defaultDuckName(tokenId);
+        string memory description = name;
+        if (!_isEmptyBytes32(profile.name)) name = string(abi.encodePacked(name, " - ", _bytes32ToString(profile.name)));
+        if (bytes(profile.description).length > 0) description = profile.description;
+        string memory image = string(abi.encodePacked("data:image/webp;base64,", string(SSTORE2.read(duckIdToWEBP[tokenId]))));        
+
+        return string(abi.encodePacked(
+            "data:application/json;base64,",
+            Base64.encode(abi.encodePacked(
+                '{', 
+                    '"name":"', name, '",', 
+                    '"description":"', description, '",', 
+                    '"image": "', image, '",',
+                    '"attributes":', _generateMetadataAttributes(tokenId, profile),
+                '}'
+            ))
+        ));
     }
 
-    function _generateMetadataAttributes(uint256 tokenId) internal view returns (string memory attributes) {
-        string memory duckType;
-        string memory creator;
+    function _generateMetadataAttributes(uint256 tokenId, DuckProfile memory profile) internal view returns (string memory attributes) {
+        bytes memory duckType;
+        bytes memory creator;
         if (tokenId < TOZZI_DUCKS) {
             duckType = "Tozzi";
             creator = "Jim Tozzi";
         } else {
             duckType = "Custom";
-            creator = string(abi.encodePacked(_addressToString(duckCreators[tokenId])));
+            creator = abi.encodePacked(_addressToString(duckCreators[tokenId]));
         }
-        return string(bytes(abi.encodePacked(
-            '[{"trait_type":"Duck Type","value":"',
-            duckType,
-            '"},{"trait_type":"Creator","value":"',
-            creator,
-            '"}]'
-        )));
+
+        bytes memory _attributes = abi.encodePacked(
+            '{',
+                '"trait_type": "Duck Type",', 
+                '"value":', '"', duckType, '"',
+            '},'
+            '{', 
+                '"trait_type": "Creator",',
+                '"value":', '"', creator, '"',
+            '}'
+        );
+
+        if (_isOnProbation(tokenId)) {
+            _attributes = abi.encodePacked(
+                _attributes, 
+                ',', 
+                '{', 
+                    '"trait_type": "Status",',
+                    '"value": "Probation"',
+                '}'
+            );
+        } else if (!_isEmptyBytes32(profile.status)) {
+            _attributes = abi.encodePacked(
+                _attributes, 
+                ',', 
+                '{', 
+                    '"trait_type": "Status",',
+                    '"value":', '"', _bytes32ToString(profile.status), '"',
+                '}'
+            );
+        }
+
+        bytes32 title = duckTitles[tokenId];
+        if (!_isEmptyBytes32(title)) {
+            _attributes = abi.encodePacked(
+                _attributes, 
+                ',', 
+                '{', 
+                    '"trait_type": "Title",',
+                    '"value":', '"', _bytes32ToString(title), '"',
+                '}'
+            );
+        }
+
+        return string(abi.encodePacked('[', _attributes, ']'));
     }
 
     // TODO - Unit tests for internal helpers
@@ -294,6 +312,20 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
 
     function _isCustomDuck(uint256 tokenId) internal pure returns (bool) {
         return tokenId >= 200 && tokenId != OWNERSHIP_TOKEN_ID;
+    }
+
+    function _defaultDuckName(uint256 tokenId) internal pure returns (string memory) {
+        return string(abi.encodePacked("Tozzi Duck ", tokenId.toString()));       
+    }
+
+    function _isEmptyBytes32(bytes32 _bytes32) internal pure returns (bool) {
+        bytes32 empty;
+        return _bytes32 == empty;
+    }
+
+    function _isOnProbation(uint256 tokenId) internal view returns (bool) {
+        if (!_isCustomDuck(tokenId)) return false;
+        return block.timestamp <= customDuckHatchedTimes[tokenId] + BURN_WINDOW;
     }
 
     function _bytes32ToString(bytes32 _bytes32) internal pure returns (string memory) {

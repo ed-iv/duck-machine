@@ -26,11 +26,10 @@ interface ITheAmazingTozziDuckMachine {
         duckAllowances
     }
 
-    // TODO - Maybe
-    // struct MetadataAttribtutes {
-    //     bytes32 traitType;
-    //     bytes32 value;
-    // }
+    struct Attribute {
+        string traitType;
+        string value;
+    }
 
     struct MachineConfig {
         uint256 tozziDuckPrice;
@@ -51,7 +50,8 @@ interface ITheAmazingTozziDuckMachine {
     }
 
     struct DuckProfile {
-        string name;
+        bytes32 name;
+        bytes32 status;
         string description;
     }
 
@@ -80,7 +80,8 @@ interface ITheAmazingTozziDuckMachine {
 
     event DuckProfileUpdated(
         uint256 indexed duckId,
-        string name,
+        bytes32 indexed name,
+        bytes32 indexed status,
         string description
     );
 
@@ -108,12 +109,10 @@ interface ITheAmazingTozziDuckMachine {
     function setOwnershipTokenURI(string calldata ownershipTokenUri) external;
     function setDuckTitle(uint256 tokenId, bytes32 title) external;
     function setMOTD(string calldata motd) external;
-    function setDuckAllowance(address who, uint128 tozziDuckAllowance, uint128 customDuckAllowance) external;
-    function setDuckStatus(uint256 tokenId, uint8 statusId) external;
-    function getDuckStatus(uint256 tokenId) external returns (string memory statusName);
-    function setDuckProfile(uint256 tokenId, string calldata _name, string calldata _description) external;
-    function withdraw(address recipient, uint256 amount) external;
+    function setDuckAllowance(address who, uint128 tozziDuckAllowance, uint128 customDuckAllowance) external;    
+    function setDuckProfile(uint256 tokenId, bytes32 name, bytes32 status, string calldata description) external;    
     function burnRenegadeDuck(uint256 tokenId, string calldata reason) external;
     function mintTozziDuck(uint256 duckId, string calldata webp, bytes32[] calldata merkleProof) external payable;
     function mintCustomDuck(string calldata webp) external payable;
+    function withdraw(address recipient, uint256 amount) external;
 }
