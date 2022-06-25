@@ -26,6 +26,12 @@ interface ITheAmazingTozziDuckMachine {
         duckAllowances
     }
 
+    // TODO - Maybe
+    // struct MetadataAttribtutes {
+    //     bytes32 traitType;
+    //     bytes32 value;
+    // }
+
     struct MachineConfig {
         uint256 tozziDuckPrice;
         uint256 customDuckPrice;
@@ -78,6 +84,12 @@ interface ITheAmazingTozziDuckMachine {
         string description
     );
 
+    event DuckTitleGranted(
+        uint256 indexed tokenId,
+        bytes32 indexed title,
+        address indexed owner
+    );
+
     event DuckStatusUpdated(
         uint256 indexed duckId,
         uint8 indexed statusId,        
@@ -93,13 +105,15 @@ interface ITheAmazingTozziDuckMachine {
     event MOTDSet(address indexed owner, string message);
 
     function setMachineConfig(MachineConfig calldata _machineConfig) external;
+    function setOwnershipTokenURI(string calldata ownershipTokenUri) external;
+    function setDuckTitle(uint256 tokenId, bytes32 title) external;
     function setMOTD(string calldata motd) external;
     function setDuckAllowance(address who, uint128 tozziDuckAllowance, uint128 customDuckAllowance) external;
     function setDuckStatus(uint256 tokenId, uint8 statusId) external;
     function getDuckStatus(uint256 tokenId) external returns (string memory statusName);
     function setDuckProfile(uint256 tokenId, string calldata _name, string calldata _description) external;
     function withdraw(address recipient, uint256 amount) external;
-    function burnRenegadeDuck(uint256 duckId, string calldata reason) external;
+    function burnRenegadeDuck(uint256 tokenId, string calldata reason) external;
     function mintTozziDuck(uint256 duckId, string calldata webp, bytes32[] calldata merkleProof) external payable;
     function mintCustomDuck(string calldata webp) external payable;
 }

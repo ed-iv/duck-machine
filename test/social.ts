@@ -177,8 +177,7 @@ describe("Social Mechanics", () => {
       expect(metadata.name).to.be.eq('Tozzi Duck #0 - newName');
       expect(metadata.description).to.be.eq('updated profile');
 
-      const meta2 = parseMetadata(await duckMachine.tokenURI(200));
-      console.log(meta2);
+      const meta2 = parseMetadata(await duckMachine.tokenURI(200));      
     });
   });
 

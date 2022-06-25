@@ -64,6 +64,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     string private _ownershipTokenURI;    
     MachineConfig public machineConfig;
     mapping(uint256 => address) public duckCreators;
+    mapping(uint256 => bytes32) public duckTitles;
     mapping(address => DuckAllowance) public duckAllowances;
     mapping(uint8 => string) public duckStatusOptions;
     mapping(uint256 => uint8) public duckStatuses;
@@ -73,7 +74,12 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     mapping(uint256 => uint256) public customDuckHatchedTimes;
     
     modifier onlyMachineOwner() {
-        if (ownerOf(OWNERSHIP_TOKEN_ID) != _msgSender()) revert Unauthorized();
+        if (_machineOwner() != _msgSender()) revert Unauthorized();
+        _;
+    }
+
+    modifier onlyExtantDuck(uint256 tokenId) {
+        require(_exists(tokenId), "ERC721: owner query for nonexistent token");
         _;
     }
 
@@ -88,13 +94,17 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     function setMachineConfig(MachineConfig calldata _machineConfig) external override onlyMachineOwner {
         machineConfig = _machineConfig;
         emit MachineConfigUpdated(
-            ownerOf(OWNERSHIP_TOKEN_ID),
+            _machineOwner(),
             _machineConfig.tozziDuckPrice,
             _machineConfig.customDuckPrice,
             _machineConfig.maxCustomDucks,
             _machineConfig.tozziDuckMintStatus,
             _machineConfig.customDuckMintStatus
         );
+    }
+
+    function setOwnershipTokenURI(string calldata ownershipTokenUri) external override onlyMachineOwner {
+        _ownershipTokenURI = ownershipTokenUri;
     }
 
     function setMOTD(string calldata motd) external override onlyMachineOwner {
@@ -114,14 +124,20 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         );
     }
 
+    // TODO -tests
+    function setDuckTitle(uint256 tokenId, bytes32 title) external override onlyExtantDuck(tokenId) onlyMachineOwner {
+        duckTitles[tokenId] = title;
+        emit DuckTitleGranted(tokenId, title, _machineOwner());
+    }
+
     function defineDuckStatus(uint8 statusId, string calldata statusName) external onlyMachineOwner {
         if (statusId == 0) revert InvalidStatusId();
         duckStatusOptions[statusId] = statusName;
         emit DuckStatusDefined(statusId, statusName);
     }
 
-    function setDuckStatus(uint256 tokenId, uint8 statusId) external override {
-        require(_exists(tokenId), "ERC721: owner query for nonexistent token");
+    function setDuckStatus(uint256 tokenId, uint8 statusId) external override onlyExtantDuck(tokenId) {
+        // require(_exists(tokenId), "ERC721: owner query for nonexistent token");
         string memory statusName = duckStatusOptions[statusId];
         if (_isEmptyString(statusName) && statusId != 0) revert InvalidStatusId();
         if (_msgSender() != ownerOf(tokenId)) revert Unauthorized();
@@ -129,8 +145,8 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         emit DuckStatusUpdated(tokenId, statusId, statusName, _msgSender());
     }
 
-    function getDuckStatus(uint256 tokenId) external override view returns (string memory statusName) {
-        require(_exists(tokenId), "ERC721: owner query for nonexistent token");
+    function getDuckStatus(uint256 tokenId) external override view onlyExtantDuck(tokenId) returns (string memory statusName)  {
+        // require(_exists(tokenId), "ERC721: owner query for nonexistent token");
         return duckStatusOptions[duckStatuses[tokenId]];
     }
 
@@ -153,22 +169,13 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         SafeTransferLib.safeTransferETH(recipient, amount);
     }
 
-    function burnRenegadeDuck(uint256 duckId, string calldata reason) external override onlyMachineOwner {
-        if (
-            duckId < TOZZI_DUCKS ||
-            duckId == OWNERSHIP_TOKEN_ID ||
-            !_exists(duckId)
-        ) revert InvalidDuckId();
-        if (block.timestamp > customDuckHatchedTimes[duckId] + BURN_WINDOW)
+    function burnRenegadeDuck(uint256 tokenId, string calldata reason) external override onlyExtantDuck(tokenId) onlyMachineOwner {
+        // require(_exists(tokenId), "ERC721: owner query for nonexistent token");
+        if (!_isCustomDuck(tokenId)) revert InvalidDuckId();
+        if (block.timestamp > customDuckHatchedTimes[tokenId] + BURN_WINDOW)
             revert BurnWindowPassed();
-        address duckOwner = ownerOf(duckId);
-        _burn(duckId);
-        emit CustomDuckBurned(
-            duckId,
-            ownerOf(OWNERSHIP_TOKEN_ID),
-            duckOwner,
-            reason
-        );
+        _burn(tokenId);
+        emit CustomDuckBurned(tokenId, _machineOwner(), ownerOf(tokenId), reason);
     }
 
     function mintTozziDuck(
@@ -230,10 +237,8 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         );
     }
 
-    function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        require(_exists(tokenId), "ERC721: owner query for nonexistent token");
+    function tokenURI(uint256 tokenId) public view override onlyExtantDuck(tokenId) returns (string memory) {
         if (tokenId == OWNERSHIP_TOKEN_ID) return _ownershipTokenURI;        
-
         DuckProfile memory profile = duckProfiles[tokenId];
         string memory name = string(abi.encodePacked("Tozzi Duck #", tokenId.toString()));        
         if (bytes(profile.name).length > 0) name = string(abi.encodePacked(name, " - ", profile.name));
@@ -277,8 +282,31 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
             '"}]'
         )));
     }
-    
+
+    // TODO - Unit tests for internal helpers
     function _addressToString(address _address) internal pure returns (string memory) {
         return Strings.toHexString(uint256(uint160(_address)), 20);
     }
+
+    function _machineOwner() internal view returns (address machineOwner) {
+        return ownerOf(OWNERSHIP_TOKEN_ID);
+    }
+
+    function _isCustomDuck(uint256 tokenId) internal pure returns (bool) {
+        return tokenId >= 200 && tokenId != OWNERSHIP_TOKEN_ID;
+    }
+
+    function _bytes32ToString(bytes32 _bytes32) internal pure returns (string memory) {
+        uint8 i = 0;
+        while(i < 32 && _bytes32[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 32 && _bytes32[i] != 0; i++) {
+            bytesArray[i] = _bytes32[i];
+        }
+        return string(bytesArray);
+    }
 }
+
+
