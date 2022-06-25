@@ -52,16 +52,15 @@ import "@rari-capital/solmate/src/utils/SSTORE2.sol";
 import "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 import {Base64} from "./lib/base64.sol";
 
-
 contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumerable, Ownable {
     using Strings for uint256;    
     
-    uint256 private constant TOZZI_DUCKS = 200;
-    uint256 private constant BURN_WINDOW = 1 weeks;
+    uint256 private constant TOZZI_DUCKS = 200;    
     uint256 public constant OWNERSHIP_TOKEN_ID = 420;
     bytes32 private constant MERKLE_ROOT = 0x0885f98e28c44d2dd7b21d5b9e2661e99e90482a771a419967dd2c9c8edfb0d7;    
     uint256 private _customDuckCounter;
-    string private _ownershipTokenURI;    
+    string private _ownershipTokenURI; 
+    uint256 public probationPeriod = 1 weeks;   
     MachineConfig public machineConfig;
     mapping(uint256 => address) public duckCreators;
     mapping(uint256 => bytes32) public duckTitles;
@@ -107,6 +106,10 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         _ownershipTokenURI = ownershipTokenUri;
     }
 
+    function setProbationPeriod(uint256 _probationPeriod) external override onlyMachineOwner {
+        probationPeriod = _probationPeriod;
+    }
+
     function setMOTD(string calldata motd) external override onlyMachineOwner {
         emit MOTDSet(_msgSender(), motd);
     }
@@ -145,11 +148,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         duckProfiles[tokenId] = DuckProfile(name, status, description);
         emit DuckProfileUpdated(tokenId, name, status, description);
     }
-
-    function _isEmptyString(string memory str) internal pure returns (bool) {
-        return keccak256(abi.encodePacked(str)) == keccak256(abi.encodePacked(""));
-    }
-
+    
     function withdraw(address recipient, uint256 amount) external override onlyMachineOwner {
         if (amount > address(this).balance) revert InsufficientFunds();
         if (amount == 0) revert AmountMustBeNonZero();
@@ -326,7 +325,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
 
     function _isOnProbation(uint256 tokenId) internal view returns (bool) {
         if (!_isCustomDuck(tokenId)) return false;
-        return block.timestamp <= customDuckHatchedTimes[tokenId] + BURN_WINDOW;
+        return block.timestamp <= customDuckHatchedTimes[tokenId] + probationPeriod;
     }
 
     function _bytes32ToString(bytes32 _bytes32) internal pure returns (string memory) {
@@ -341,5 +340,3 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         return string(bytesArray);
     }
 }
-
-
