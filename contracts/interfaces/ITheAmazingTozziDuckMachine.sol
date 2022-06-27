@@ -91,23 +91,10 @@ interface ITheAmazingTozziDuckMachine {
         address indexed owner
     );
 
-    event DuckStatusUpdated(
-        uint256 indexed duckId,
-        uint8 indexed statusId,        
-        string statusName,
-        address indexed who
-    );
-
-    event DuckStatusDefined(
-        uint8 indexed statusId,
-        string statusName
-    );
-
     event MOTDSet(address indexed owner, string message);
 
     function setMachineConfig(MachineConfig calldata _machineConfig) external;
     function setOwnershipTokenURI(string calldata ownershipTokenUri) external;
-    function setProbationPeriod(uint256 probationPeriod) external;
     function setDuckTitle(uint256 tokenId, bytes32 title) external;
     function setMOTD(string calldata motd) external;
     function setDuckAllowance(address who, uint128 tozziDuckAllowance, uint128 customDuckAllowance) external;    

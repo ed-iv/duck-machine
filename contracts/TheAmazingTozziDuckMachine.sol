@@ -57,16 +57,16 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     
     uint256 private constant TOZZI_DUCKS = 200;    
     uint256 public constant OWNERSHIP_TOKEN_ID = 420;
+    // uint256 public constant probationPeriod = 1 weeks;   
+    uint256 public constant probationPeriod = 10 minutes; // TODO - remove test value
     bytes32 private constant MERKLE_ROOT = 0x0885f98e28c44d2dd7b21d5b9e2661e99e90482a771a419967dd2c9c8edfb0d7;    
     uint256 private _customDuckCounter;
     string private _ownershipTokenURI; 
-    uint256 public probationPeriod = 1 weeks;   
+    
     MachineConfig public machineConfig;
     mapping(uint256 => address) public duckCreators;
     mapping(uint256 => bytes32) public duckTitles;
     mapping(address => DuckAllowance) public duckAllowances;
-    mapping(uint8 => string) public duckStatusOptions;
-    mapping(uint256 => uint8) public duckStatuses;
     mapping(uint256 => DuckProfile) public duckProfiles;
     mapping(uint256 => address) public duckIdToWEBP;
     mapping(bytes32 => bool) public duckExists;
@@ -106,10 +106,6 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         _ownershipTokenURI = ownershipTokenUri;
     }
 
-    function setProbationPeriod(uint256 _probationPeriod) external override onlyMachineOwner {
-        probationPeriod = _probationPeriod;
-    }
-
     function setMOTD(string calldata motd) external override onlyMachineOwner {
         emit MOTDSet(_msgSender(), motd);
     }
@@ -132,12 +128,6 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         emit DuckTitleGranted(tokenId, title, _machineOwner());
     }
 
-    function defineDuckStatus(uint8 statusId, string calldata statusName) external onlyMachineOwner {
-        if (statusId == 0) revert InvalidStatusId();
-        duckStatusOptions[statusId] = statusName;
-        emit DuckStatusDefined(statusId, statusName);
-    }
-
     function setDuckProfile(
         uint256 tokenId,
         bytes32 name,
@@ -158,8 +148,9 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     function burnRenegadeDuck(uint256 tokenId, string calldata reason) external override onlyExtantDuck(tokenId) onlyMachineOwner {
         if (!_isCustomDuck(tokenId)) revert InvalidDuckId();
         if (!_isOnProbation(tokenId)) revert BurnWindowPassed();
+        address owner = ownerOf(tokenId);
         _burn(tokenId);
-        emit CustomDuckBurned(tokenId, _machineOwner(), ownerOf(tokenId), reason);
+        emit CustomDuckBurned(tokenId, _machineOwner(), owner, reason);
     }
 
     function mintTozziDuck(
