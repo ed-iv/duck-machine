@@ -65,10 +65,11 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     
     MachineConfig public machineConfig;
     mapping(uint256 => address) public duckCreators;
+    mapping(uint256 => bytes32) public artists;
     mapping(uint256 => bytes32) public duckTitles;
     mapping(address => DuckAllowance) public duckAllowances;
     mapping(uint256 => DuckProfile) public duckProfiles;
-    mapping(uint256 => address) public duckIdToWEBP;
+    mapping(uint256 => address) public duckImageData;
     mapping(bytes32 => bool) public duckExists;
     mapping(uint256 => uint256) public customDuckHatchedTimes;
     
@@ -153,6 +154,26 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         emit CustomDuckBurned(tokenId, _machineOwner(), owner, reason);
     }
 
+    function ownerMint(address to, string calldata webp, bytes32 artist) external override onlyMachineOwner {                
+        if (_customDuckCounter >= machineConfig.maxCustomDucks) revert CustomDuckLimitReached();        
+        if (_customDuckCounter + TOZZI_DUCKS == OWNERSHIP_TOKEN_ID) _customDuckCounter += 1;
+        bytes32 webpHash = keccak256(abi.encodePacked(webp));
+        if (duckExists[webpHash]) revert DuckAlreadyExists();
+        duckExists[webpHash] = true;
+        uint256 tokenId = TOZZI_DUCKS + (_customDuckCounter++);
+        address pointer = SSTORE2.write(bytes(webp));
+        duckImageData[tokenId] = pointer;
+        _safeMint(to, tokenId);
+        artists[tokenId] = artist;
+        customDuckHatchedTimes[tokenId] = block.timestamp;
+        emit DuckMinted(
+            tokenId,
+            to,
+            DuckType.Custom,
+            machineConfig.customDuckPrice
+        );
+    }
+
     function mintTozziDuck(
         uint256 duckId,
         string calldata webp,
@@ -171,7 +192,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         if (!MerkleProof.verify(merkleProof, MERKLE_ROOT, node))
             revert InvalidProof();
         address pointer = SSTORE2.write(bytes(webp));
-        duckIdToWEBP[duckId] = pointer;
+        duckImageData[duckId] = pointer;
         _safeMint(_msgSender(), duckId);
         emit DuckMinted(
             duckId,
@@ -200,7 +221,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         duckExists[webpHash] = true;
         uint256 tokenId = TOZZI_DUCKS + (_customDuckCounter++);
         address pointer = SSTORE2.write(bytes(webp));
-        duckIdToWEBP[tokenId] = pointer;
+        duckImageData[tokenId] = pointer;
         _safeMint(_msgSender(), tokenId);
         duckCreators[tokenId] = _msgSender();
         customDuckHatchedTimes[tokenId] = block.timestamp;
@@ -220,7 +241,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         string memory description = name;
         if (!_isEmptyBytes32(profile.name)) name = string(abi.encodePacked(name, " - ", _bytes32ToString(profile.name)));
         if (bytes(profile.description).length > 0) description = profile.description;
-        string memory image = string(abi.encodePacked("data:image/webp;base64,", string(SSTORE2.read(duckIdToWEBP[tokenId]))));        
+        string memory image = string(abi.encodePacked("data:image/webp;base64,", string(SSTORE2.read(duckImageData[tokenId]))));        
 
         return string(abi.encodePacked(
             "data:application/json;base64,",
@@ -243,7 +264,12 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
             creator = "Jim Tozzi";
         } else {
             duckType = "Custom";
-            creator = abi.encodePacked(_addressToString(duckCreators[tokenId]));
+            bytes32 artist = artists[tokenId];
+            if (_isEmptyBytes32(artist)) {
+                creator = abi.encodePacked(_addressToString(duckCreators[tokenId]));
+            } else {
+                creator = abi.encodePacked(_bytes32ToString(artist));
+            }            
         }
 
         bytes memory _attributes = abi.encodePacked(
