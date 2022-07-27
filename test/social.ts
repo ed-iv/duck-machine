@@ -94,7 +94,7 @@ describe("Social Mechanics", () => {
     it("Duck profile determines tokenURI", async () => {      
       let metadata = parseMetadata(await duckMachine.tokenURI(0));
       let status = metadata.attributes.find((a: any) => a.trait_type === 'Status');
-      expect(metadata.name).to.be.eq('Tozzi Duck 0 - Duck Name');
+      expect(metadata.name).to.be.eq('Duck Name');
       expect(status.value).to.be.eq('Chillin');
       expect(metadata.description).to.be.eq('duck profile');
 
@@ -102,7 +102,7 @@ describe("Social Mechanics", () => {
 
       metadata = parseMetadata(await duckMachine.tokenURI(0));
       status = metadata.attributes.find((a: any) => a.trait_type === 'Status');
-      expect(metadata.name).to.be.eq('Tozzi Duck 0 - Quacker');
+      expect(metadata.name).to.be.eq('Quacker');
       expect(status.value).to.be.eq('Quackin');
       expect(metadata.description).to.be.eq('updated profile');
 

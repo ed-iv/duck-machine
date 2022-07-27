@@ -23,7 +23,7 @@ interface ITheAmazingTozziDuckMachine {
     enum MintStatus {
         Enabled,
         Disabled,
-        duckAllowances
+        Allow
     }
 
     struct Attribute {

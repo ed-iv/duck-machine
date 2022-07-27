@@ -36,7 +36,7 @@ pragma solidity 0.8.9;
  *                            .{@ #GGGG@# #Qp9Q@ ##GG9Q######WN,,,
  *                         ,s#888@QQGG@@##Wb788@QQ@@@ #      7@# Q,
  *           ________               _____    ________             ______
- *            ___  __/__________________(_)   ___  __ \___  __________  /_________
+ *           ___  __/__________________(_)   ___  __ \___  __________  /_________
  *            __  /  _  __ \__  /__  /_  /    __  / / /  / / /  ___/_  //_/_  ___/
  *           _  /   / /_/ /_  /__  /_  /     _  /_/ // /_/ // /__ _  ,<  _(__  )
  *            /_/    \____/_____/____/_/      /_____/ \__,_/ \___/ /_/|_| /____/
@@ -83,14 +83,18 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         _;
     }
 
-    constructor(MachineConfig memory _machineConfig, string memory ownershipTokenURI)
-        ERC721("Tozzi Ducks", "TZDUCKS")
-    {
+    constructor(
+        MachineConfig memory _machineConfig, 
+        string memory ownershipTokenURI
+    ) ERC721("Tozzi Ducks", "TZDUCKS") {
         machineConfig = _machineConfig;
         _ownershipTokenURI = ownershipTokenURI;
         _safeMint(_msgSender(), OWNERSHIP_TOKEN_ID);
     }
 
+    /**
+     * @notice Configure the machine to manage the growth of the duck population responsibly.
+     */
     function setMachineConfig(MachineConfig calldata _machineConfig) external override onlyMachineOwner {
         machineConfig = _machineConfig;
         emit MachineConfigUpdated(
@@ -103,14 +107,26 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         );
     }
 
+    /**
+     * @notice Adjust the media associated with the token representing ownership of the machine.
+     */
     function setOwnershipTokenURI(string calldata ownershipTokenUri) external override onlyMachineOwner {
         _ownershipTokenURI = ownershipTokenUri;
     }
 
+    /**
+     * @notice Share the latest news with the flock.
+     * @dev Emits an event to be picked up and displayed by front-ends.
+     */
     function setMOTD(string calldata motd) external override onlyMachineOwner {
         emit MOTDSet(_msgSender(), motd);
     }
 
+    /**
+     * @notice Manage the duck allowance for an individual account. A duck allowance specifies how many of each type of duck
+     * (Tozzi and Custom) a given user is able to mint. A user's duck allowances will deplete with each mint. Note: Duck allowances 
+     * are only taken into account when mint status for a particular duck type is set to MintStatus.Allow.
+     */
     function setDuckAllowance(
         address who,
         uint128 tozziDuckAllowance,
@@ -124,11 +140,18 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         );
     }
     
+    /**
+     * @notice Grant a special title to a deserving duck.
+     */
     function setDuckTitle(uint256 tokenId, bytes32 title) external override onlyExtantDuck(tokenId) onlyMachineOwner {
         duckTitles[tokenId] = title;
         emit DuckTitleGranted(tokenId, title, _machineOwner());
     }
 
+    /**
+     * @notice Update your duck's profile by providing a custom name, status, and description.
+     * @dev Customized duck profiles are used within tokenURI() when constructing a duck's metadata.
+     */
     function setDuckProfile(
         uint256 tokenId,
         bytes32 name,
@@ -140,12 +163,19 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         emit DuckProfileUpdated(tokenId, name, status, description);
     }
     
+    /**
+     * @notice After all ... Why shouldn't you take profits?
+     */
     function withdraw(address recipient, uint256 amount) external override onlyMachineOwner {
         if (amount > address(this).balance) revert InsufficientFunds();
         if (amount == 0) revert AmountMustBeNonZero();
         SafeTransferLib.safeTransferETH(recipient, amount);
     }
 
+    /**
+     * @notice Burn a freshly minted custom duck because you hate it's face. Custom ducks that are less than
+     * 1 WEEK old are subject to the destructive whims of the machine's owner.
+     */
     function burnRenegadeDuck(uint256 tokenId, string calldata reason) external override onlyExtantDuck(tokenId) onlyMachineOwner {
         if (!_isCustomDuck(tokenId)) revert InvalidDuckId();
         if (!_isOnProbation(tokenId)) revert BurnWindowPassed();
@@ -154,9 +184,19 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         emit CustomDuckBurned(tokenId, _machineOwner(), owner, reason);
     }
 
-    function ownerMint(address to, string calldata webp, bytes32 artist) external override onlyMachineOwner {                
-        if (_customDuckCounter >= machineConfig.maxCustomDucks) revert CustomDuckLimitReached();        
-        if (_customDuckCounter + TOZZI_DUCKS == OWNERSHIP_TOKEN_ID) _customDuckCounter += 1;
+    /**
+     * @notice Mint a custom duck directly to specified recipient bypassing minting fees. The resulting duck will have 
+     * it's 'Creator' attribute set to the supplied artist parameter.
+     */
+    function ownerMint(
+        address to, 
+        string calldata webp, 
+        bytes32 artist
+    ) external override onlyMachineOwner {                
+        if (_customDuckCounter >= machineConfig.maxCustomDucks) 
+            revert CustomDuckLimitReached();        
+        if (_customDuckCounter + TOZZI_DUCKS == OWNERSHIP_TOKEN_ID) 
+            _customDuckCounter += 1;
         bytes32 webpHash = keccak256(abi.encodePacked(webp));
         if (duckExists[webpHash]) revert DuckAlreadyExists();
         duckExists[webpHash] = true;
@@ -174,6 +214,11 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         );
     }
 
+    /**
+     * @notice Mint one of 200 official Tozzi Ducks created by Jim Tozzi. Image storage costs paid by minter.
+     * @dev User supplies webp data to be stored on chain. The provided proof is used verify that provided
+     * duck image data is legit. 
+     */
     function mintTozziDuck(
         uint256 duckId,
         string calldata webp,
@@ -183,7 +228,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
             revert MintingDisabled(DuckType.Tozzi);
         if (msg.value != machineConfig.tozziDuckPrice)
             revert IncorrectDuckPrice();
-        if (machineConfig.tozziDuckMintStatus == MintStatus.duckAllowances) {
+        if (machineConfig.tozziDuckMintStatus == MintStatus.Allow) {
             if (duckAllowances[_msgSender()].tozziDuckAllowance <= 0)
                 revert InsufficientDuckAllowance();
             duckAllowances[_msgSender()].tozziDuckAllowance--;
@@ -202,6 +247,11 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         );
     }
 
+    /**
+     * @notice Mint your very own custom duck. Minter pays fees associated with on-chain storage of webp image data. Newly minted
+     * custom ducks are born into a 1 WEEK probation period. While under probation, custom ducks can be destroyed by the machine's
+     * current owner.
+     */
     function mintCustomDuck(string calldata webp) external override payable {
         if (machineConfig.customDuckMintStatus == MintStatus.Disabled)
             revert MintingDisabled(DuckType.Custom);
@@ -209,7 +259,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
             revert CustomDuckLimitReached();
         if (msg.value != machineConfig.customDuckPrice)
             revert IncorrectDuckPrice();
-        if (machineConfig.customDuckMintStatus == MintStatus.duckAllowances) {
+        if (machineConfig.customDuckMintStatus == MintStatus.Allow) {
             if (duckAllowances[_msgSender()].customDuckAllowance <= 0)
                 revert InsufficientDuckAllowance();
             duckAllowances[_msgSender()].customDuckAllowance--;
@@ -239,7 +289,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         DuckProfile memory profile = duckProfiles[tokenId];
         string memory name = _defaultDuckName(tokenId);
         string memory description = name;
-        if (!_isEmptyBytes32(profile.name)) name = string(abi.encodePacked(name, " - ", _bytes32ToString(profile.name)));
+        if (!_isEmptyBytes32(profile.name)) name = _bytes32ToString(profile.name);
         if (bytes(profile.description).length > 0) description = profile.description;
         string memory image = string(abi.encodePacked("data:image/webp;base64,", string(SSTORE2.read(duckImageData[tokenId]))));        
 
