@@ -60,7 +60,8 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     // uint256 public constant probationPeriod = 1 weeks;   
     uint256 public constant probationPeriod = 10 minutes; // TODO - remove test value
     bytes32 private constant MERKLE_ROOT = 0x0885f98e28c44d2dd7b21d5b9e2661e99e90482a771a419967dd2c9c8edfb0d7;    
-    uint256 private _customDuckCounter;
+    uint256 private _nextCustomDuckTokenId;
+    uint256 private _numCustomDucks;
     string private _ownershipTokenURI; 
     
     MachineConfig public machineConfig;
@@ -110,7 +111,9 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     /**
      * @notice Adjust the media associated with the token representing ownership of the machine.
      */
-    function setOwnershipTokenURI(string calldata ownershipTokenUri) external override onlyMachineOwner {
+    function setOwnershipTokenURI(
+        string calldata ownershipTokenUri
+    ) external override onlyMachineOwner {
         _ownershipTokenURI = ownershipTokenUri;
     }
 
@@ -143,7 +146,10 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     /**
      * @notice Grant a special title to a deserving duck.
      */
-    function setDuckTitle(uint256 tokenId, bytes32 title) external override onlyExtantDuck(tokenId) onlyMachineOwner {
+    function setDuckTitle(
+        uint256 tokenId, 
+        bytes32 title
+    ) external override onlyExtantDuck(tokenId) onlyMachineOwner {
         duckTitles[tokenId] = title;
         emit DuckTitleGranted(tokenId, title, _machineOwner());
     }
@@ -164,23 +170,18 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     }
     
     /**
-     * @notice After all ... Why shouldn't you take profits?
-     */
-    function withdraw(address recipient, uint256 amount) external override onlyMachineOwner {
-        if (amount > address(this).balance) revert InsufficientFunds();
-        if (amount == 0) revert AmountMustBeNonZero();
-        SafeTransferLib.safeTransferETH(recipient, amount);
-    }
-
-    /**
      * @notice Burn a freshly minted custom duck because you hate it's face. Custom ducks that are less than
      * 1 WEEK old are subject to the destructive whims of the machine's owner.
      */
-    function burnRenegadeDuck(uint256 tokenId, string calldata reason) external override onlyExtantDuck(tokenId) onlyMachineOwner {
+    function burnRenegadeDuck(
+        uint256 tokenId, 
+        string calldata reason
+    ) external override onlyExtantDuck(tokenId) onlyMachineOwner {
         if (!_isCustomDuck(tokenId)) revert InvalidDuckId();
         if (!_isOnProbation(tokenId)) revert BurnWindowPassed();
         address owner = ownerOf(tokenId);
         _burn(tokenId);
+        _numCustomDucks -= 1;
         emit CustomDuckBurned(tokenId, _machineOwner(), owner, reason);
     }
 
@@ -193,19 +194,20 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         string calldata webp, 
         bytes32 artist
     ) external override onlyMachineOwner {                
-        if (_customDuckCounter >= machineConfig.maxCustomDucks) 
+        if (_numCustomDucks >= machineConfig.maxCustomDucks) 
             revert CustomDuckLimitReached();        
-        if (_customDuckCounter + TOZZI_DUCKS == OWNERSHIP_TOKEN_ID) 
-            _customDuckCounter += 1;
+        if (_nextCustomDuckTokenId + TOZZI_DUCKS == OWNERSHIP_TOKEN_ID) 
+            _nextCustomDuckTokenId += 1;
         bytes32 webpHash = keccak256(abi.encodePacked(webp));
         if (duckExists[webpHash]) revert DuckAlreadyExists();
         duckExists[webpHash] = true;
-        uint256 tokenId = TOZZI_DUCKS + (_customDuckCounter++);
+        uint256 tokenId = TOZZI_DUCKS + (_nextCustomDuckTokenId++);
         address pointer = SSTORE2.write(bytes(webp));
         duckImageData[tokenId] = pointer;
         _safeMint(to, tokenId);
         artists[tokenId] = artist;
         customDuckHatchedTimes[tokenId] = block.timestamp;
+        _numCustomDucks += 1;
         emit DuckMinted(
             tokenId,
             to,
@@ -255,7 +257,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     function mintCustomDuck(string calldata webp) external override payable {
         if (machineConfig.customDuckMintStatus == MintStatus.Disabled)
             revert MintingDisabled(DuckType.Custom);
-        if (_customDuckCounter >= machineConfig.maxCustomDucks)
+        if (_numCustomDucks >= machineConfig.maxCustomDucks)
             revert CustomDuckLimitReached();
         if (msg.value != machineConfig.customDuckPrice)
             revert IncorrectDuckPrice();
@@ -264,17 +266,18 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
                 revert InsufficientDuckAllowance();
             duckAllowances[_msgSender()].customDuckAllowance--;
         }
-        if (_customDuckCounter + TOZZI_DUCKS == OWNERSHIP_TOKEN_ID)
-            _customDuckCounter += 1;
+        if (_nextCustomDuckTokenId + TOZZI_DUCKS == OWNERSHIP_TOKEN_ID)
+            _nextCustomDuckTokenId += 1;
         bytes32 webpHash = keccak256(abi.encodePacked(webp));
         if (duckExists[webpHash]) revert DuckAlreadyExists();
         duckExists[webpHash] = true;
-        uint256 tokenId = TOZZI_DUCKS + (_customDuckCounter++);
+        uint256 tokenId = TOZZI_DUCKS + (_nextCustomDuckTokenId++);
         address pointer = SSTORE2.write(bytes(webp));
         duckImageData[tokenId] = pointer;
         _safeMint(_msgSender(), tokenId);
         duckCreators[tokenId] = _msgSender();
         customDuckHatchedTimes[tokenId] = block.timestamp;
+        _numCustomDucks += 1;
         emit DuckMinted(
             tokenId,
             _msgSender(),
@@ -306,7 +309,19 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         ));
     }
 
-    function _generateMetadataAttributes(uint256 tokenId, DuckProfile memory profile) internal view returns (string memory attributes) {
+    /**
+     * @notice After all ... Why shouldn't you take profits?
+     */
+    function withdraw(address recipient, uint256 amount) external override onlyMachineOwner {
+        if (amount > address(this).balance) revert InsufficientFunds();
+        if (amount == 0) revert AmountMustBeNonZero();
+        SafeTransferLib.safeTransferETH(recipient, amount);
+    }
+
+    function _generateMetadataAttributes(
+        uint256 tokenId, 
+        DuckProfile memory profile
+    ) internal view returns (string memory attributes) {
         bytes memory duckType;
         bytes memory creator;
         if (tokenId < TOZZI_DUCKS) {
@@ -368,7 +383,6 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         return string(abi.encodePacked('[', _attributes, ']'));
     }
 
-    // TODO - Unit tests for internal helpers
     function _addressToString(address _address) internal pure returns (string memory) {
         return Strings.toHexString(uint256(uint160(_address)), 20);
     }
