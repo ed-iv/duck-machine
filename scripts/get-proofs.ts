@@ -40,34 +40,13 @@ async function main() {
     const proofs: any = {};    
     
     for (let i = 0; i < elements.length; i++) {      
-      const proof = tree.getHexProof(keccak256(elements[i].leaf));
-      console.log(proof);
+      const proof = tree.getHexProof(keccak256(elements[i].leaf));      
       proofs[i] = { ...elements[i], proof }      
     }
 
     fs.writeFileSync(`./duck-data/root.txt`, tree.getHexRoot());     
     fs.writeFileSync(`./duck-data/proofs.json`, JSON.stringify(proofs));     
-    
   });
-
-
-  // Generate Proofs
-  
-
-  // const whitelist = {
-  //   root: merkleTree.getHexRoot(),
-  //   proofs: proofs 
-  // }
-  
-  try {
-    // fs.writeFileSync(`./data/owners.json`, JSON.stringify(owners));  
-    // fs.writeFileSync(`./data/whitelist.json`, JSON.stringify(whitelist));  
-  } catch (e) {
-    console.log(e);
-  }
-
-  
-
 }
 
 

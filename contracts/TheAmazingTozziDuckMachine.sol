@@ -59,7 +59,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     uint256 public constant OWNERSHIP_TOKEN_ID = 420;
     // uint256 public constant probationPeriod = 1 weeks;   
     uint256 public constant probationPeriod = 10 minutes; // TODO - remove test value
-    bytes32 private constant MERKLE_ROOT = 0xc302c3a0314c3394d48bb0e3d2197b034575bcf9de7afe33e558a438e033b131;    
+    bytes32 private constant MERKLE_ROOT = 0x338d93cb1a832788e65adb648a180ffdba1e28be01ffac312541994ce443ade7;    
     uint256 private _nextCustomDuckTokenId;
     uint256 private _numCustomDucks;
     string private _ownershipTokenURI; 
