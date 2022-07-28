@@ -59,7 +59,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     uint256 public constant OWNERSHIP_TOKEN_ID = 420;
     // uint256 public constant probationPeriod = 1 weeks;   
     uint256 public constant probationPeriod = 10 minutes; // TODO - remove test value
-    bytes32 private constant MERKLE_ROOT = 0x0885f98e28c44d2dd7b21d5b9e2661e99e90482a771a419967dd2c9c8edfb0d7;    
+    bytes32 private constant MERKLE_ROOT = 0xc302c3a0314c3394d48bb0e3d2197b034575bcf9de7afe33e558a438e033b131;    
     uint256 private _nextCustomDuckTokenId;
     uint256 private _numCustomDucks;
     string private _ownershipTokenURI; 
@@ -318,25 +318,22 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         SafeTransferLib.safeTransferETH(recipient, amount);
     }
 
+    function _getDuckCreator(uint256 tokenId) internal view returns (string memory) {
+        if (tokenId < TOZZI_DUCKS) return "Jim Tozzi";
+        bytes32 artist = artists[tokenId];
+        if (!_isEmptyBytes32(artist)) {
+            return string(abi.encodePacked(_bytes32ToString(artist)));
+        }        
+        return string(abi.encodePacked(_addressToString(duckCreators[tokenId])));
+    }
+
     function _generateMetadataAttributes(
         uint256 tokenId, 
         DuckProfile memory profile
     ) internal view returns (string memory attributes) {
-        bytes memory duckType;
-        bytes memory creator;
-        if (tokenId < TOZZI_DUCKS) {
-            duckType = "Tozzi";
-            creator = "Jim Tozzi";
-        } else {
-            duckType = "Custom";
-            bytes32 artist = artists[tokenId];
-            if (_isEmptyBytes32(artist)) {
-                creator = abi.encodePacked(_addressToString(duckCreators[tokenId]));
-            } else {
-                creator = abi.encodePacked(_bytes32ToString(artist));
-            }            
-        }
-
+        string memory duckType = _isTozziDuck(tokenId) ? "Tozzi" : "Custom";
+        string memory creator = _getDuckCreator(tokenId);
+        
         bytes memory _attributes = abi.encodePacked(
             '{',
                 '"trait_type": "Duck Type",', 
@@ -391,8 +388,12 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         return ownerOf(OWNERSHIP_TOKEN_ID);
     }
 
+    function _isTozziDuck(uint256 tokenId) internal pure returns (bool) {
+        return tokenId < TOZZI_DUCKS;
+    }
+
     function _isCustomDuck(uint256 tokenId) internal pure returns (bool) {
-        return tokenId >= 200 && tokenId != OWNERSHIP_TOKEN_ID;
+        return tokenId >= TOZZI_DUCKS && tokenId != OWNERSHIP_TOKEN_ID;
     }
 
     function _defaultDuckName(uint256 tokenId) internal pure returns (string memory) {

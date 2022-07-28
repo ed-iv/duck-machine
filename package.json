@@ -37,6 +37,9 @@
     "base64-sol": "^1.1.0",
     "hardhat-deploy": "^0.10.5",
     "hardhat-gas-reporter": "^1.0.8",
-    "lodash": "^4.17.21"
+    "keccak256": "^1.0.6",
+    "lodash": "^4.17.21",
+    "merkletreejs": "^0.2.32",
+    "string-natural-compare": "^3.0.1"
   }
 }

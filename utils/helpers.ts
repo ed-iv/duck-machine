@@ -1,7 +1,8 @@
 import { TheAmazingTozziDuckMachine } from '../typechain';
 import { enabledConfig } from './constants';
 import duckData from '../duck-data/proofs.json';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';import { MerkleTree } from "merkletreejs";
+import keccak256 from "keccak256";
 
 export const mintTozziDuck = async (duckId: number, contract: TheAmazingTozziDuckMachine) => {
   await contract.mintTozziDuck(
@@ -31,3 +32,5 @@ export const parseMetadata = (dataURI: string) => {
   const result = JSON.parse(json);
   return result;
 }
+
+export const getNow = () => Math.ceil(Date.now() / 1000);
