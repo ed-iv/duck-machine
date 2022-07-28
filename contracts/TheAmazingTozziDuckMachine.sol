@@ -51,6 +51,7 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@rari-capital/solmate/src/utils/SSTORE2.sol";
 import "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 import {Base64} from "./lib/base64.sol";
+import "hardhat/console.sol";
 
 contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumerable, Ownable {
     using Strings for uint256;    
@@ -293,6 +294,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         string memory name = _defaultDuckName(tokenId);
         string memory description = name;
         if (!_isEmptyBytes32(profile.name)) name = _bytes32ToString(profile.name);
+        console.log(name);
         if (bytes(profile.description).length > 0) description = profile.description;
         string memory image = string(abi.encodePacked("data:image/webp;base64,", string(SSTORE2.read(duckImageData[tokenId]))));        
 

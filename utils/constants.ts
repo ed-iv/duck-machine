@@ -1,10 +1,10 @@
 import { utils } from "ethers";
 
-const MINTSTATUS_ENABLED = 0;
-const MINTSTATUS_DISABLED = 1;
-const MINTSTATUS_WHITELIST = 2;
+export const MINTSTATUS_ENABLED = 0;
+export const MINTSTATUS_DISABLED = 1;
+export const MINTSTATUS_WHITELIST = 2;
 
-export const disabledConfig = {
+export const defaultConfig = {
   tozziDuckPrice: utils.parseEther("0.1"),
   customDuckPrice: utils.parseEther("0.2"),
   maxCustomDucks: 200,
@@ -13,13 +13,13 @@ export const disabledConfig = {
 };
 
 export const enabledConfig = {
-  ...disabledConfig,
+  ...defaultConfig,
   tozziDuckMintStatus: MINTSTATUS_ENABLED,
   customDuckMintStatus: MINTSTATUS_ENABLED,
 };
 
-export const whitelistConfig = {
-  ...disabledConfig,
+export const allowConfig = {
+  ...defaultConfig,
   tozziDuckMintStatus: MINTSTATUS_WHITELIST,
   customDuckMintStatus: MINTSTATUS_WHITELIST,
 };
