@@ -58,8 +58,8 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     
     uint256 private constant TOZZI_DUCKS = 200;    
     uint256 public constant OWNERSHIP_TOKEN_ID = 420;
-    // uint256 public constant probationPeriod = 1 weeks;   
-    uint256 public constant probationPeriod = 10 minutes; // TODO - remove test value
+    uint256 public constant probationPeriod = 1 weeks;   
+    // uint256 public constant probationPeriod = 10 minutes; // TODO - remove test value
     bytes32 private constant MERKLE_ROOT = 0x338d93cb1a832788e65adb648a180ffdba1e28be01ffac312541994ce443ade7;    
     uint256 private _nextCustomDuckTokenId;
     uint256 private _numCustomDucks;
@@ -99,6 +99,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
      */
     function setMachineConfig(MachineConfig calldata _machineConfig) external override onlyMachineOwner {
         machineConfig = _machineConfig;
+        require(_machineConfig.maxCustomDucks >= _numCustomDucks);
         emit MachineConfigUpdated(
             _machineOwner(),
             _machineConfig.tozziDuckPrice,
@@ -192,8 +193,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
      */
     function ownerMint(
         address to, 
-        string calldata webp, 
-        bytes32 artist
+        string calldata webp
     ) external override onlyMachineOwner {                
         if (_numCustomDucks >= machineConfig.maxCustomDucks) 
             revert CustomDuckLimitReached();        
@@ -206,7 +206,6 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         address pointer = SSTORE2.write(bytes(webp));
         duckImageData[tokenId] = pointer;
         _safeMint(to, tokenId);
-        artists[tokenId] = artist;
         customDuckHatchedTimes[tokenId] = block.timestamp;
         _numCustomDucks += 1;
         emit DuckMinted(
@@ -215,6 +214,14 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
             DuckType.Custom,
             machineConfig.customDuckPrice
         );
+    }
+
+    /**
+     * @notice Shout out the artist who created a custom duck.
+     */
+    function setArtistName(uint256 tokenId, bytes32 name) external onlyExtantDuck(tokenId) onlyMachineOwner {
+        if (!_isCustomDuck(tokenId)) revert InvalidDuckId();
+        artists[tokenId] = name;
     }
 
     /**
@@ -293,8 +300,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         DuckProfile memory profile = duckProfiles[tokenId];
         string memory name = _defaultDuckName(tokenId);
         string memory description = name;
-        if (!_isEmptyBytes32(profile.name)) name = _bytes32ToString(profile.name);
-        console.log(name);
+        if (!_isEmptyBytes32(profile.name)) name = _bytes32ToString(profile.name);        
         if (bytes(profile.description).length > 0) description = profile.description;
         string memory image = string(abi.encodePacked("data:image/webp;base64,", string(SSTORE2.read(duckImageData[tokenId]))));        
 

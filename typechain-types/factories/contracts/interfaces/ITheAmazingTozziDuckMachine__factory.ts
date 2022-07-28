@@ -322,13 +322,26 @@ const _abi = [
         name: "webp",
         type: "string",
       },
+    ],
+    name: "ownerMint",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
       {
         internalType: "bytes32",
-        name: "artist",
+        name: "name",
         type: "bytes32",
       },
     ],
-    name: "ownerMint",
+    name: "setArtistName",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

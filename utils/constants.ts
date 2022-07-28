@@ -4,6 +4,8 @@ export const MINTSTATUS_ENABLED = 0;
 export const MINTSTATUS_DISABLED = 1;
 export const MINTSTATUS_WHITELIST = 2;
 
+export const ONE_WEEK = 604800;
+
 export const defaultConfig = {
   tozziDuckPrice: utils.parseEther("0.1"),
   customDuckPrice: utils.parseEther("0.2"),

@@ -1,11 +1,9 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { BigNumber, utils } from "ethers";
-import { TheAmazingTozziDuckMachine } from "../typechain";
+import { utils } from "ethers";
 import duckData from "../duck-data/proofs.json";
-import { MachineConfig } from "../utils/types";
-import { defaultConfig, allowConfig, enabledConfig } from "../utils/constants";
+import { defaultConfig, enabledConfig } from "../utils/constants";
 import { mintTozziDuck, mintCustomDuck, parseMetadata } from '../utils/helpers';
 
 const emptyBytes32 = utils.formatBytes32String('') 
@@ -84,54 +82,44 @@ describe("Social Mechanics", () => {
     });
   });
 
-  // describe("Duck Titles", () => {
-  //   it("Allows machine owner to set title for existing duck", async () => {
-  //     let metadata = parseMetadata(await duckMachine.tokenURI(0));
-  //     let title = metadata.attributes.find((a: any) => a.trait_type === 'Title');
-  //     expect(title).to.be.eq(undefined);
-  //     expect(await duckMachine.duckTitles(0)).to.be.eq(emptyBytes32);      
+  describe("Duck Titles", () => {
+    it("Allows machine owner to set title for existing duck", async () => {
+      const { duckMachine, owner }  = await loadFixture(deployDuckMachineFixture);
       
-  //     await expect(duckMachine.setDuckTitle(0, genesisTitle)).not.to.be.reverted;
-  //     metadata = parseMetadata(await duckMachine.tokenURI(0));
-  //     console.log(metadata);
-  //     title = metadata.attributes.find((a: any) => a.trait_type === 'Title');
-  //     expect(title.value).to.be.eq(utils.parseBytes32String(genesisTitle));
-  //     expect(await duckMachine.duckTitles(0)).to.be.eq(genesisTitle);
-
-  //     const block = await ethers.provider.getBlockNumber();
-  //     const events = await duckMachine.queryFilter(duckMachine.filters.DuckTitleGranted(), block);
-  //     const event = duckMachine.interface.parseLog(events[events.length - 1]);   
-
-  //     expect(event.args.tokenId).to.be.eq(0);
-  //     expect(event.args.title).to.be.eq(genesisTitle);
-  //     expect(event.args.owner).to.be.eq(machineOwner.address);      
-  //   });
-  // });
-
-  // describe("MOTD", () => {
-  //   it("Machine owner can set MOTD", async () => {    
-  //     await expect(duckMachine.setMOTD('Welcome to the duck machine!')).not.to.be.reverted;
-
-  //     await expect(
-  //       duckMachine.transferFrom(machineOwner.address, machineOwner2.address, 420)
-  //     ).not.to.be.reverted;
-
-  //     await expect(duckMachine.connect(machineOwner2).setMOTD('Critical update!')).not.to.be.reverted;
-
-  //     const events = await duckMachine.queryFilter(duckMachine.filters.MOTDSet());
-  //     const motd1 = duckMachine.interface.parseLog(events[0]);   
-  //     const motd2 = duckMachine.interface.parseLog(events[1]);   
+      let metadata = parseMetadata(await duckMachine.tokenURI(0));
+      let title = metadata.attributes.find((a: any) => a.trait_type === 'Title');
+      expect(title).to.be.eq(undefined);
+      expect(await duckMachine.duckTitles(0)).to.be.eq(emptyBytes32);      
       
-  //     expect(events.length).to.be.eq(2);
-  //     expect(motd1.args.owner).to.be.eq(machineOwner.address);
-  //     expect(motd1.args.message).to.be.eq('Welcome to the duck machine!');
+      await expect(duckMachine.setDuckTitle(0, genesisTitle))
+        .to.emit(duckMachine, "DuckTitleGranted")
+        .withArgs(0, genesisTitle, owner.address);
 
-  //     expect(motd2.args.owner).to.be.eq(machineOwner2.address);
-  //     expect(motd2.args.message).to.be.eq('Critical update!');
-  //   });
+      metadata = parseMetadata(await duckMachine.tokenURI(0));      
+      title = metadata.attributes.find((a: any) => a.trait_type === 'Title');
+      expect(title.value).to.be.eq(utils.parseBytes32String(genesisTitle));
+      expect(await duckMachine.duckTitles(0)).to.be.eq(genesisTitle);      
+    });
+  });
 
-  //   it("Reverts if unauthorized user tries to set MOTD", async () => {
-  //     await expect(duckMachine.setMOTD('blah')).to.be.revertedWith('Unauthorized()');
-  //   });
-  // });
+  describe("MOTD", () => {
+    it("Machine owner can set MOTD", async () => {    
+      const { duckMachine, owner, user }  = await loadFixture(deployDuckMachineFixture);
+      await expect(duckMachine.setMOTD('Welcome to the duck machine!'))
+        .to.emit(duckMachine, "MOTDSet")
+        .withArgs(owner.address, 'Welcome to the duck machine!');
+
+      await duckMachine.transferFrom(owner.address, user.address, 420);
+
+      await expect(duckMachine.connect(user).setMOTD('Critical update!'))
+        .to.emit(duckMachine, "MOTDSet")
+        .withArgs(user.address, 'Critical update!');
+    });
+
+    it("Reverts if unauthorized user tries to set MOTD", async () => {
+      const { duckMachine, user }  = await loadFixture(deployDuckMachineFixture);
+      await expect(duckMachine.connect(user).setMOTD('blah'))
+        .to.be.revertedWithCustomError(duckMachine, 'Unauthorized');
+    });
+  });
 });

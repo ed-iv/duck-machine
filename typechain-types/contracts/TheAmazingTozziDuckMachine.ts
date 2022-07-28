@@ -73,13 +73,14 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
     "mintTozziDuck(uint256,string,bytes32[])": FunctionFragment;
     "name()": FunctionFragment;
     "owner()": FunctionFragment;
-    "ownerMint(address,string,bytes32)": FunctionFragment;
+    "ownerMint(address,string)": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
     "probationPeriod()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
     "safeTransferFrom(address,address,uint256,bytes)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
+    "setArtistName(uint256,bytes32)": FunctionFragment;
     "setDuckAllowance(address,uint128,uint128)": FunctionFragment;
     "setDuckProfile(uint256,bytes32,bytes32,string)": FunctionFragment;
     "setDuckTitle(uint256,bytes32)": FunctionFragment;
@@ -125,6 +126,7 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
       | "safeTransferFrom(address,address,uint256)"
       | "safeTransferFrom(address,address,uint256,bytes)"
       | "setApprovalForAll"
+      | "setArtistName"
       | "setDuckAllowance"
       | "setDuckProfile"
       | "setDuckTitle"
@@ -218,11 +220,7 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ownerMint",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "ownerOf",
@@ -256,6 +254,10 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "setApprovalForAll",
     values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setArtistName",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
     functionFragment: "setDuckAllowance",
@@ -403,6 +405,10 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setApprovalForAll",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setArtistName",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -744,7 +750,6 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
     ownerMint(
       to: PromiseOrValue<string>,
       webp: PromiseOrValue<string>,
-      artist: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -777,6 +782,12 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
     setApprovalForAll(
       operator: PromiseOrValue<string>,
       approved: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    setArtistName(
+      tokenId: PromiseOrValue<BigNumberish>,
+      name: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -972,7 +983,6 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
   ownerMint(
     to: PromiseOrValue<string>,
     webp: PromiseOrValue<string>,
-    artist: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -1005,6 +1015,12 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
   setApprovalForAll(
     operator: PromiseOrValue<string>,
     approved: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setArtistName(
+    tokenId: PromiseOrValue<BigNumberish>,
+    name: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -1200,7 +1216,6 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
     ownerMint(
       to: PromiseOrValue<string>,
       webp: PromiseOrValue<string>,
-      artist: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1231,6 +1246,12 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
     setApprovalForAll(
       operator: PromiseOrValue<string>,
       approved: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setArtistName(
+      tokenId: PromiseOrValue<BigNumberish>,
+      name: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1526,7 +1547,6 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
     ownerMint(
       to: PromiseOrValue<string>,
       webp: PromiseOrValue<string>,
-      artist: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1559,6 +1579,12 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
     setApprovalForAll(
       operator: PromiseOrValue<string>,
       approved: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setArtistName(
+      tokenId: PromiseOrValue<BigNumberish>,
+      name: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1736,7 +1762,6 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
     ownerMint(
       to: PromiseOrValue<string>,
       webp: PromiseOrValue<string>,
-      artist: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1769,6 +1794,12 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
     setApprovalForAll(
       operator: PromiseOrValue<string>,
       approved: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setArtistName(
+      tokenId: PromiseOrValue<BigNumberish>,
+      name: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -100,7 +100,8 @@ interface ITheAmazingTozziDuckMachine {
     function setDuckAllowance(address who, uint128 tozziDuckAllowance, uint128 customDuckAllowance) external;    
     function setDuckProfile(uint256 tokenId, bytes32 name, bytes32 status, string calldata description) external;    
     function burnRenegadeDuck(uint256 tokenId, string calldata reason) external;
-    function ownerMint(address to, string calldata webp, bytes32 artist) external;
+    function ownerMint(address to, string calldata webp) external;
+    function setArtistName(uint256 tokenId, bytes32 name) external;
     function mintTozziDuck(uint256 duckId, string calldata webp, bytes32[] calldata merkleProof) external payable;
     function mintCustomDuck(string calldata webp) external payable;
     function withdraw(address recipient, uint256 amount) external;
