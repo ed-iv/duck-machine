@@ -487,7 +487,7 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
     "CustomDuckBurned(uint256,address,address,string)": EventFragment;
-    "DuckMinted(uint256,address,uint8,uint256)": EventFragment;
+    "DuckMinted(uint256,bytes32,address,address,uint8,uint256)": EventFragment;
     "DuckProfileUpdated(uint256,bytes32,bytes32,string)": EventFragment;
     "DuckTitleGranted(uint256,bytes32,address)": EventFragment;
     "MOTDSet(address,string)": EventFragment;
@@ -548,12 +548,14 @@ export type CustomDuckBurnedEventFilter =
 
 export interface DuckMintedEventObject {
   tokenId: BigNumber;
-  who: string;
+  webpHash: string;
+  creator: string;
+  recipient: string;
   duckType: number;
   price: BigNumber;
 }
 export type DuckMintedEvent = TypedEvent<
-  [BigNumber, string, number, BigNumber],
+  [BigNumber, string, string, string, number, BigNumber],
   DuckMintedEventObject
 >;
 
@@ -1415,16 +1417,20 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
       reason?: null
     ): CustomDuckBurnedEventFilter;
 
-    "DuckMinted(uint256,address,uint8,uint256)"(
+    "DuckMinted(uint256,bytes32,address,address,uint8,uint256)"(
       tokenId?: PromiseOrValue<BigNumberish> | null,
-      who?: PromiseOrValue<string> | null,
-      duckType?: PromiseOrValue<BigNumberish> | null,
+      webpHash?: PromiseOrValue<BytesLike> | null,
+      creator?: PromiseOrValue<string> | null,
+      recipient?: null,
+      duckType?: null,
       price?: null
     ): DuckMintedEventFilter;
     DuckMinted(
       tokenId?: PromiseOrValue<BigNumberish> | null,
-      who?: PromiseOrValue<string> | null,
-      duckType?: PromiseOrValue<BigNumberish> | null,
+      webpHash?: PromiseOrValue<BytesLike> | null,
+      creator?: PromiseOrValue<string> | null,
+      recipient?: null,
+      duckType?: null,
       price?: null
     ): DuckMintedEventFilter;
 

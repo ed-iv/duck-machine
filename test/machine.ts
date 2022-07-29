@@ -166,7 +166,7 @@ describe("Duck Machine", () => {
   });
 
   describe("Tozzi Duck Minting", () => {    
-    it("Allows users to mint tozzi ducks", async () => {
+    it("FOO Allows users to mint tozzi ducks", async () => {      
       const { owner, user, duckMachine }  = await loadFixture(deployDuckMachineFixture);          
       await duckMachine.connect(owner).setMachineConfig(enabledConfig);
       await Promise.all(
@@ -178,7 +178,14 @@ describe("Duck Machine", () => {
               duck.proof, 
               { value: enabledConfig.tozziDuckPrice }
           )).to.emit(duckMachine, "DuckMinted")
-            .withArgs(index, user.address, 0, enabledConfig.tozziDuckPrice);        
+            .withArgs(
+              index, 
+              utils.solidityKeccak256(['string'], [duck.webp]),
+              user.address,
+              user.address, 
+              0, 
+              enabledConfig.tozziDuckPrice
+            );        
         })
       );
       expect(await duckMachine.totalSupply()).to.be.eq(201);
@@ -266,7 +273,14 @@ describe("Duck Machine", () => {
               { value: enabledConfig.customDuckPrice }
             )
           ).to.emit(duckMachine, "DuckMinted")
-          .withArgs(200 + index, user.address, 1, enabledConfig.customDuckPrice);          
+          .withArgs(
+            200 + index, 
+            utils.solidityKeccak256(['string'], [duck.webp]),
+            user.address,
+            user.address, 
+            1, 
+            enabledConfig.customDuckPrice
+          );          
         })
       );
 
@@ -314,7 +328,14 @@ describe("Duck Machine", () => {
         ducks[0].webp, 
         {value: allowConfig.customDuckPrice }
       )).to.emit(duckMachine, "DuckMinted")
-        .withArgs(200, user.address, 1, allowConfig.customDuckPrice);
+        .withArgs(
+          200, 
+          utils.solidityKeccak256(['string'], [ducks[0].webp]),
+          user.address, 
+          user.address, 
+          1, 
+          allowConfig.customDuckPrice
+        );
       expect(await duckMachine.ownerOf(200)).to.be.eq(user.address);
       
       allowance = await duckMachine.duckAllowances(user.address);
@@ -326,7 +347,14 @@ describe("Duck Machine", () => {
         ducks[1].webp,
         { value: allowConfig.customDuckPrice }
       )).to.emit(duckMachine, "DuckMinted")
-      .withArgs(201, user.address, 1, allowConfig.customDuckPrice);
+      .withArgs(
+        201, 
+        utils.solidityKeccak256(['string'], [ducks[1].webp]),
+        user.address, 
+        user.address,
+        1, 
+        allowConfig.customDuckPrice
+      );
 
       expect(await duckMachine.ownerOf(201)).to.be.eq(user.address);
       allowance = await duckMachine.duckAllowances(user.address);
@@ -438,7 +466,14 @@ describe("Duck Machine", () => {
       await expect (
         duckMachine.connect(user).mintCustomDuck(user.address, ducks[2].webp, { value: enabledConfig.customDuckPrice })
       ).to.emit(duckMachine, "DuckMinted")
-        .withArgs(202, user.address, 1, enabledConfig.customDuckPrice);
+        .withArgs(
+          202, 
+          utils.solidityKeccak256(['string'], [ducks[2].webp]),
+          user.address,
+          user.address, 
+          1, 
+          enabledConfig.customDuckPrice
+        );
 
       expect(await duckMachine.totalSupply()).to.be.eq(3);
       expect(await duckMachine.ownerOf(202)).to.be.eq(user.address);

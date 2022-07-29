@@ -221,6 +221,8 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         _numCustomDucks += 1;
         emit DuckMinted(
             tokenId,
+            webpHash,
+            _msgSender(),
             to,
             DuckType.Custom,
             machineConfig.customDuckPrice
@@ -258,6 +260,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
                 revert InsufficientDuckAllowance();
             duckAllowances[_msgSender()].tozziDuckAllowance--;
         }
+        bytes32 webpHash = keccak256(abi.encodePacked(webp));
         bytes32 node = keccak256(abi.encodePacked(duckId, webp));
         if (!MerkleProof.verify(merkleProof, MERKLE_ROOT, node))
             revert InvalidProof();
@@ -266,6 +269,8 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         _safeMint(to, duckId);
         emit DuckMinted(
             duckId,
+            webpHash,
+            _msgSender(),
             to,
             DuckType.Tozzi,
             machineConfig.tozziDuckPrice
@@ -303,6 +308,8 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         _numCustomDucks += 1;
         emit DuckMinted(
             tokenId,
+            webpHash,
+            _msgSender(),
             to,
             DuckType.Custom,
             machineConfig.customDuckPrice

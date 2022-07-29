@@ -112,12 +112,24 @@ const _abi = [
       },
       {
         indexed: true,
-        internalType: "address",
-        name: "who",
-        type: "address",
+        internalType: "bytes32",
+        name: "webpHash",
+        type: "bytes32",
       },
       {
         indexed: true,
+        internalType: "address",
+        name: "creator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "recipient",
+        type: "address",
+      },
+      {
+        indexed: false,
         internalType: "enum ITheAmazingTozziDuckMachine.DuckType",
         name: "duckType",
         type: "uint8",

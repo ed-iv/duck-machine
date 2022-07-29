@@ -54,8 +54,10 @@ interface ITheAmazingTozziDuckMachine {
 
     event DuckMinted(
         uint256 indexed tokenId,
-        address indexed who,
-        DuckType indexed duckType,
+        bytes32 indexed webpHash,
+        address indexed creator,
+        address recipient,
+        DuckType duckType,    
         uint256 price
     );
 
