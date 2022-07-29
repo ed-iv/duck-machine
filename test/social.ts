@@ -5,6 +5,7 @@ import { utils } from "ethers";
 import duckData from "../duck-data/proofs.json";
 import { defaultConfig, enabledConfig } from "../utils/constants";
 import { mintTozziDuck, mintCustomDuck, parseMetadata } from '../utils/helpers';
+import { TheAmazingTozziDuckMachine } from "../typechain-types";
 
 const emptyBytes32 = utils.formatBytes32String('') 
 const testName = utils.formatBytes32String('Duck Name');
@@ -12,6 +13,7 @@ const testStatus = utils.formatBytes32String('Chillin');
 const newName = utils.formatBytes32String('Quacker');
 const newStatus = utils.formatBytes32String('Quackin');
 const genesisTitle = utils.formatBytes32String('Genesis Duck');
+const artistName = utils.formatBytes32String('Artist Name');
 
 describe("Social Mechanics", () => {
   const deployDuckMachineFixture = async () => {
@@ -99,6 +101,38 @@ describe("Social Mechanics", () => {
       title = metadata.attributes.find((a: any) => a.trait_type === 'Title');
       expect(title.value).to.be.eq(utils.parseBytes32String(genesisTitle));
       expect(await duckMachine.duckTitles(0)).to.be.eq(genesisTitle);      
+    });
+  });
+
+  describe("Artist Names", () => {
+    it("Allows machine owner to name the creator of a custom duck", async () => {
+      const { duckMachine, owner, user }  = await loadFixture(deployDuckMachineFixture);
+      expect(await duckMachine.artists(200)).to.be.eq(emptyBytes32);
+      await expect(duckMachine.setArtistName(200, artistName))
+        .not.to.be.reverted;
+      expect(await duckMachine.artists(200)).to.be.eq(artistName);
+
+      let metadata = parseMetadata(await duckMachine.tokenURI(200));      
+      let creator = metadata.attributes.find((a: any) => a.trait_type === 'Creator');
+      expect(creator.value).to.be.eq(utils.parseBytes32String(artistName));
+    });
+
+    it("Allows machine owner to clear artist name", async () => {
+      const { duckMachine, owner, user }  = await loadFixture(deployDuckMachineFixture);      
+      await expect(duckMachine.setArtistName(200, artistName))
+        .not.to.be.reverted;
+      expect(await duckMachine.artists(200)).to.be.eq(artistName);
+      let metadata = parseMetadata(await duckMachine.tokenURI(200));      
+      let creator = metadata.attributes.find((a: any) => a.trait_type === 'Creator');
+      expect(creator.value).to.be.eq(utils.parseBytes32String(artistName));
+
+      // Clear the name
+      await expect(duckMachine.setArtistName(200, emptyBytes32))
+        .not.to.be.reverted;
+      // Creator should go back to displaying minter address:
+      metadata = parseMetadata(await duckMachine.tokenURI(200));      
+      creator = metadata.attributes.find((a: any) => a.trait_type === 'Creator');
+      expect(creator.value).to.be.eq(user.address.toLocaleLowerCase());
     });
   });
 

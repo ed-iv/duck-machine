@@ -1,10 +1,10 @@
-import { TheAmazingTozziDuckMachine } from '../typechain';
+import { TheAmazingTozziDuckMachine } from '../typechain-types';
 import { enabledConfig } from './constants';
 import duckData from '../duck-data/proofs.json';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';import { MerkleTree } from "merkletreejs";
 import keccak256 from "keccak256";
 
-export const mintTozziDuck = async (duckId: number, contract: TheAmazingTozziDuckMachine) => {
+export const mintTozziDuck = async (duckId: number, contract: any) => {
   await contract.mintTozziDuck(
     duckId, 
     // @ts-ignore
@@ -17,7 +17,7 @@ export const mintTozziDuck = async (duckId: number, contract: TheAmazingTozziDuc
 
 export const mintCustomDuck = async (
   webp: string, 
-  contract: TheAmazingTozziDuckMachine,
+  contract: any,
   who?: SignerWithAddress
 ) => {
   if (who) contract = contract.connect(who);

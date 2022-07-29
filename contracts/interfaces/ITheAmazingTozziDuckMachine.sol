@@ -25,12 +25,7 @@ interface ITheAmazingTozziDuckMachine {
         Disabled,
         Allow
     }
-
-    struct Attribute {
-        string traitType;
-        string value;
-    }
-
+    
     struct MachineConfig {
         uint256 tozziDuckPrice;
         uint256 customDuckPrice;
@@ -43,12 +38,7 @@ interface ITheAmazingTozziDuckMachine {
         uint128 tozziDuckAllowance;
         uint128 customDuckAllowance;
     }
-
-    struct DuckStance {
-        string stance;
-        uint256 timeout;
-    }
-
+    
     struct DuckProfile {
         bytes32 name;
         bytes32 status;

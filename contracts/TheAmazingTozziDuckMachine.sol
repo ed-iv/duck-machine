@@ -58,8 +58,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     
     uint256 private constant TOZZI_DUCKS = 200;    
     uint256 public constant OWNERSHIP_TOKEN_ID = 420;
-    uint256 public constant probationPeriod = 1 weeks;   
-    // uint256 public constant probationPeriod = 10 minutes; // TODO - remove test value
+    uint256 public constant probationPeriod = 1 weeks;    
     bytes32 private constant MERKLE_ROOT = 0x338d93cb1a832788e65adb648a180ffdba1e28be01ffac312541994ce443ade7;    
     uint256 private _nextCustomDuckTokenId;
     uint256 private _numCustomDucks;
@@ -219,7 +218,10 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     /**
      * @notice Shout out the artist who created a custom duck.
      */
-    function setArtistName(uint256 tokenId, bytes32 name) external onlyExtantDuck(tokenId) onlyMachineOwner {
+    function setArtistName(
+        uint256 tokenId, 
+        bytes32 name
+    ) external override onlyExtantDuck(tokenId) onlyMachineOwner {
         if (!_isCustomDuck(tokenId)) revert InvalidDuckId();
         artists[tokenId] = name;
     }
