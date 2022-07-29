@@ -50,6 +50,16 @@ export declare namespace ITheAmazingTozziDuckMachine {
     tozziDuckMintStatus: number;
     customDuckMintStatus: number;
   };
+
+  export type DuckAllowanceStruct = {
+    tozziDuckAllowance: PromiseOrValue<BigNumberish>;
+    customDuckAllowance: PromiseOrValue<BigNumberish>;
+  };
+
+  export type DuckAllowanceStructOutput = [BigNumber, BigNumber] & {
+    tozziDuckAllowance: BigNumber;
+    customDuckAllowance: BigNumber;
+  };
 }
 
 export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
@@ -81,7 +91,8 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
     "safeTransferFrom(address,address,uint256,bytes)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
     "setArtistName(uint256,bytes32)": FunctionFragment;
-    "setDuckAllowance(address,uint128,uint128)": FunctionFragment;
+    "setDuckAllowance(address,(uint128,uint128))": FunctionFragment;
+    "setDuckAllowances(address[],(uint128,uint128))": FunctionFragment;
     "setDuckProfile(uint256,bytes32,bytes32,string)": FunctionFragment;
     "setDuckTitle(uint256,bytes32)": FunctionFragment;
     "setMOTD(string)": FunctionFragment;
@@ -128,6 +139,7 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
       | "setApprovalForAll"
       | "setArtistName"
       | "setDuckAllowance"
+      | "setDuckAllowances"
       | "setDuckProfile"
       | "setDuckTitle"
       | "setMOTD"
@@ -264,8 +276,14 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
     functionFragment: "setDuckAllowance",
     values: [
       PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
+      ITheAmazingTozziDuckMachine.DuckAllowanceStruct
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setDuckAllowances",
+    values: [
+      PromiseOrValue<string>[],
+      ITheAmazingTozziDuckMachine.DuckAllowanceStruct
     ]
   ): string;
   encodeFunctionData(
@@ -414,6 +432,10 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setDuckAllowance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setDuckAllowances",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -796,8 +818,13 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
 
     setDuckAllowance(
       who: PromiseOrValue<string>,
-      tozziDuckAllowance: PromiseOrValue<BigNumberish>,
-      customDuckAllowance: PromiseOrValue<BigNumberish>,
+      allowance: ITheAmazingTozziDuckMachine.DuckAllowanceStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    setDuckAllowances(
+      who: PromiseOrValue<string>[],
+      allowance: ITheAmazingTozziDuckMachine.DuckAllowanceStruct,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -1031,8 +1058,13 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
 
   setDuckAllowance(
     who: PromiseOrValue<string>,
-    tozziDuckAllowance: PromiseOrValue<BigNumberish>,
-    customDuckAllowance: PromiseOrValue<BigNumberish>,
+    allowance: ITheAmazingTozziDuckMachine.DuckAllowanceStruct,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setDuckAllowances(
+    who: PromiseOrValue<string>[],
+    allowance: ITheAmazingTozziDuckMachine.DuckAllowanceStruct,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -1264,8 +1296,13 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
 
     setDuckAllowance(
       who: PromiseOrValue<string>,
-      tozziDuckAllowance: PromiseOrValue<BigNumberish>,
-      customDuckAllowance: PromiseOrValue<BigNumberish>,
+      allowance: ITheAmazingTozziDuckMachine.DuckAllowanceStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setDuckAllowances(
+      who: PromiseOrValue<string>[],
+      allowance: ITheAmazingTozziDuckMachine.DuckAllowanceStruct,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1599,8 +1636,13 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
 
     setDuckAllowance(
       who: PromiseOrValue<string>,
-      tozziDuckAllowance: PromiseOrValue<BigNumberish>,
-      customDuckAllowance: PromiseOrValue<BigNumberish>,
+      allowance: ITheAmazingTozziDuckMachine.DuckAllowanceStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setDuckAllowances(
+      who: PromiseOrValue<string>[],
+      allowance: ITheAmazingTozziDuckMachine.DuckAllowanceStruct,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1816,8 +1858,13 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
 
     setDuckAllowance(
       who: PromiseOrValue<string>,
-      tozziDuckAllowance: PromiseOrValue<BigNumberish>,
-      customDuckAllowance: PromiseOrValue<BigNumberish>,
+      allowance: ITheAmazingTozziDuckMachine.DuckAllowanceStruct,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setDuckAllowances(
+      who: PromiseOrValue<string>[],
+      allowance: ITheAmazingTozziDuckMachine.DuckAllowanceStruct,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

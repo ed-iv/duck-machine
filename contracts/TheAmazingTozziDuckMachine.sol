@@ -137,16 +137,23 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
      * are only taken into account when mint status for a particular duck type is set to MintStatus.Allow.
      */
     function setDuckAllowance(
-        address who,
-        uint128 tozziDuckAllowance,
-        uint128 customDuckAllowance
+        address who, 
+        DuckAllowance calldata allowance
+    ) external override onlyMachineOwner {        
+        duckAllowances[who] = allowance;        
+    }
+
+    /**
+     * @notice Set duck allowances for multiple accounts at once. Useful for whitelisting groups of accounts. Obviously,
+     * this can get expensive so please use responsibly.
+     */
+    function setDuckAllowances(
+        address[] calldata who,
+        DuckAllowance calldata allowance
     ) external override onlyMachineOwner {
-        if (tozziDuckAllowance < 0 || customDuckAllowance < 0)
-            revert InsufficientDuckAllowance();
-        duckAllowances[who] = DuckAllowance(
-            tozziDuckAllowance,
-            customDuckAllowance
-        );
+        for (uint i = 0; i < who.length; i++) {
+            duckAllowances[who[i]] = allowance;
+        }
     }
     
     /**
@@ -243,7 +250,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         bytes32[] calldata merkleProof
     ) external override payable {
         if (machineConfig.tozziDuckMintStatus == MintStatus.Disabled)
-            revert MintingDisabled(DuckType.Tozzi);
+            revert MintingDisabled();
         if (msg.value != machineConfig.tozziDuckPrice)
             revert IncorrectDuckPrice();
         if (machineConfig.tozziDuckMintStatus == MintStatus.Allow) {
@@ -272,7 +279,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
      */
     function mintCustomDuck(address to, string calldata webp) external override payable {
         if (machineConfig.customDuckMintStatus == MintStatus.Disabled)
-            revert MintingDisabled(DuckType.Custom);
+            revert MintingDisabled();
         if (_numCustomDucks >= machineConfig.maxCustomDucks)
             revert CustomDuckLimitReached();
         if (msg.value != machineConfig.customDuckPrice)

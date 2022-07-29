@@ -61,13 +61,7 @@ const _abi = [
     type: "error",
   },
   {
-    inputs: [
-      {
-        internalType: "enum ITheAmazingTozziDuckMachine.DuckType",
-        name: "duckType",
-        type: "uint8",
-      },
-    ],
+    inputs: [],
     name: "MintingDisabled",
     type: "error",
   },
@@ -364,17 +358,54 @@ const _abi = [
         type: "address",
       },
       {
-        internalType: "uint128",
-        name: "tozziDuckAllowance",
-        type: "uint128",
-      },
-      {
-        internalType: "uint128",
-        name: "customDuckAllowance",
-        type: "uint128",
+        components: [
+          {
+            internalType: "uint128",
+            name: "tozziDuckAllowance",
+            type: "uint128",
+          },
+          {
+            internalType: "uint128",
+            name: "customDuckAllowance",
+            type: "uint128",
+          },
+        ],
+        internalType: "struct ITheAmazingTozziDuckMachine.DuckAllowance",
+        name: "allowance",
+        type: "tuple",
       },
     ],
     name: "setDuckAllowance",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address[]",
+        name: "who",
+        type: "address[]",
+      },
+      {
+        components: [
+          {
+            internalType: "uint128",
+            name: "tozziDuckAllowance",
+            type: "uint128",
+          },
+          {
+            internalType: "uint128",
+            name: "customDuckAllowance",
+            type: "uint128",
+          },
+        ],
+        internalType: "struct ITheAmazingTozziDuckMachine.DuckAllowance",
+        name: "allowance",
+        type: "tuple",
+      },
+    ],
+    name: "setDuckAllowances",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

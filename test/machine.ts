@@ -5,7 +5,7 @@ import duckData from "../duck-data/proofs.json";
 import { MachineConfig } from "../utils/types";
 import { defaultConfig, allowConfig, enabledConfig, ONE_WEEK } from "../utils/constants";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { utils } from "ethers";
+import { BigNumber, utils } from "ethers";
 
 const ducks = Object.values(duckData);
 
@@ -15,6 +15,11 @@ const compareConfigs = (a: MachineConfig | any, b: MachineConfig | any) => {
   expect(a.maxCustomDucks).to.be.eq(b.maxCustomDucks);
   expect(a.tozziDuckMintStatus).to.be.eq(b.tozziDuckMintStatus);
   expect(a.customDuckMintStatus).to.be.eq(b.customDuckMintStatus);  
+}
+
+const compareAllowances = (a: any, b: any) => {
+  expect(a.tozziDuckAllowance).to.be.eq(b.tozziDuckAllowance);
+  expect(a.customDuckAllowance).to.be.eq(b.customDuckAllowance);
 }
 
 describe("Duck Machine", () => {
@@ -79,7 +84,7 @@ describe("Duck Machine", () => {
       expect(allowance.tozziDuckAllowance).to.be.eq(0);
       expect(allowance.customDuckAllowance).to.be.eq(0);
       
-      await expect(duckMachine.connect(owner).setDuckAllowance(user.address, 2, 1))
+      await expect(duckMachine.connect(owner).setDuckAllowance(user.address, [2, 1]))
         .not.to.be.reverted;
       
       allowance = await duckMachine.duckAllowances(user.address);
@@ -87,18 +92,54 @@ describe("Duck Machine", () => {
       expect(allowance.customDuckAllowance).to.be.eq(1);
 
       // Revoke allowance
-      await expect(duckMachine.connect(owner).setDuckAllowance(user.address, 0, 0))
+      await expect(duckMachine.connect(owner).setDuckAllowance(user.address, [0, 0]))
         .not.to.be.reverted;
       allowance = await duckMachine.duckAllowances(user.address);
       expect(allowance.tozziDuckAllowance).to.be.eq(0);
       expect(allowance.customDuckAllowance).to.be.eq(0);
     });
 
+    it("Allows machine owner to set duck allowances for multiple users at once", async () => {
+      const { user, owner, duckMachine }  = await loadFixture(deployDuckMachineFixture);
+      await duckMachine.connect(owner).setMachineConfig(enabledConfig);
+      const [, , , user1, user2, user3, user4, user5] = await ethers.getSigners();
+      const testUsers = [user1, user2, user3, user4, user5];
+      const zeroAllowance = { tozziDuckAllowance: 0, customDuckAllowance: 0 };
+      const testAllowance = { tozziDuckAllowance: 1, customDuckAllowance: 1 };
+    
+      let allowance = await duckMachine.duckAllowances(user1.address);
+      compareAllowances(allowance, zeroAllowance);
+      allowance = await duckMachine.duckAllowances(user2.address);
+      compareAllowances(allowance, zeroAllowance);
+      allowance = await duckMachine.duckAllowances(user3.address);
+      compareAllowances(allowance, zeroAllowance);
+      allowance = await duckMachine.duckAllowances(user4.address);
+      compareAllowances(allowance, zeroAllowance);
+      allowance = await duckMachine.duckAllowances(user5.address);
+      compareAllowances(allowance, zeroAllowance);
+
+      await expect(duckMachine.connect(owner).setDuckAllowances(testUsers.map(u => u.address), testAllowance))
+        .not.to.be.reverted;
+    
+      allowance = await duckMachine.duckAllowances(user1.address);
+      compareAllowances(allowance, testAllowance);
+      allowance = await duckMachine.duckAllowances(user2.address);
+      compareAllowances(allowance, testAllowance);
+      allowance = await duckMachine.duckAllowances(user3.address);
+      compareAllowances(allowance, testAllowance);
+      allowance = await duckMachine.duckAllowances(user4.address);
+      compareAllowances(allowance, testAllowance);
+      allowance = await duckMachine.duckAllowances(user5.address);
+      compareAllowances(allowance, testAllowance);    
+    });
+
+    
+
     it("Reverts if unauthorized user tries to set duck allowances", async () => {
       const { user, duckMachine, owner }  = await loadFixture(deployDuckMachineFixture);      
       await duckMachine.connect(owner).setMachineConfig(enabledConfig);
       await expect(
-        duckMachine.connect(user).setDuckAllowance(user.address, 100, 100)
+        duckMachine.connect(user).setDuckAllowance(user.address, [100, 100])
       ).to.be.revertedWithCustomError(duckMachine, "Unauthorized");
       const allowance = await duckMachine.duckAllowances(user.address);
       expect(allowance.tozziDuckAllowance).to.be.eq(0);
@@ -173,7 +214,7 @@ describe("Duck Machine", () => {
         { value: allowConfig.tozziDuckPrice }
       )).to.be.revertedWithCustomError(duckMachine, "InsufficientDuckAllowance");
 
-      await expect(duckMachine.connect(owner).setDuckAllowance(user.address, 2, 0))
+      await expect(duckMachine.connect(owner).setDuckAllowance(user.address, [2, 0]))
         .not.to.be.reverted;
 
       let allowance = await duckMachine.duckAllowances(user.address);
@@ -263,7 +304,7 @@ describe("Duck Machine", () => {
         { value: allowConfig.customDuckPrice }
       )).to.be.revertedWithCustomError(duckMachine, "InsufficientDuckAllowance");
       
-      await duckMachine.connect(owner).setDuckAllowance(user.address, 0, 2);
+      await duckMachine.connect(owner).setDuckAllowance(user.address, [0, 2]);
       let allowance = await duckMachine.duckAllowances(user.address);
       expect(allowance.tozziDuckAllowance).to.be.eq(0);
       expect(allowance.customDuckAllowance).to.be.eq(2);

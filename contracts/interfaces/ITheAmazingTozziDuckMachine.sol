@@ -2,18 +2,18 @@
 pragma solidity 0.8.9;
 
 interface ITheAmazingTozziDuckMachine {
-    error Unauthorized();
-    error MintingDisabled(DuckType duckType);
-    error IncorrectDuckPrice();
-    error InvalidProof();
-    error BurnWindowPassed();
-    error InsufficientFunds();
-    error InvalidDuckId();
     error AmountMustBeNonZero();
-    error InsufficientDuckAllowance();
+    error BurnWindowPassed();
     error CustomDuckLimitReached();
     error DuckAlreadyExists();
+    error IncorrectDuckPrice();
+    error InsufficientDuckAllowance();
+    error InsufficientFunds();
+    error InvalidDuckId();
+    error InvalidProof();
     error InvalidStatusId();
+    error MintingDisabled();
+    error Unauthorized();
 
     enum DuckType {
         Tozzi,
@@ -24,14 +24,6 @@ interface ITheAmazingTozziDuckMachine {
         Enabled,
         Disabled,
         Allow
-    }
-    
-    struct MachineConfig {
-        uint256 tozziDuckPrice;
-        uint256 customDuckPrice;
-        uint256 maxCustomDucks;
-        MintStatus tozziDuckMintStatus;
-        MintStatus customDuckMintStatus;
     }
 
     struct DuckAllowance {
@@ -44,14 +36,20 @@ interface ITheAmazingTozziDuckMachine {
         bytes32 status;
         string description;
     }
+    
+    struct MachineConfig {
+        uint256 tozziDuckPrice;
+        uint256 customDuckPrice;
+        uint256 maxCustomDucks;
+        MintStatus tozziDuckMintStatus;
+        MintStatus customDuckMintStatus;
+    }    
 
-    event MachineConfigUpdated(
-        address indexed who,
-        uint256 tozziDuckPrice,
-        uint256 customDuckPrice,
-        uint256 maxCustomDucks,
-        MintStatus tozziDuckMintStatus,
-        MintStatus customDuckMintStatus
+    event CustomDuckBurned(
+        uint256 duckId,
+        address admin,
+        address owner,
+        string reason
     );
 
     event DuckMinted(
@@ -59,13 +57,6 @@ interface ITheAmazingTozziDuckMachine {
         address indexed who,
         DuckType indexed duckType,
         uint256 price
-    );
-
-    event CustomDuckBurned(
-        uint256 duckId,
-        address admin,
-        address owner,
-        string reason
     );
 
     event DuckProfileUpdated(
@@ -81,18 +72,28 @@ interface ITheAmazingTozziDuckMachine {
         address indexed owner
     );
 
+    event MachineConfigUpdated(
+        address indexed who,
+        uint256 tozziDuckPrice,
+        uint256 customDuckPrice,
+        uint256 maxCustomDucks,
+        MintStatus tozziDuckMintStatus,
+        MintStatus customDuckMintStatus
+    );
+
     event MOTDSet(address indexed owner, string message);
 
-    function setMachineConfig(MachineConfig calldata _machineConfig) external;
-    function setOwnershipTokenURI(string calldata ownershipTokenUri) external;
-    function setDuckTitle(uint256 tokenId, bytes32 title) external;
-    function setMOTD(string calldata motd) external;
-    function setDuckAllowance(address who, uint128 tozziDuckAllowance, uint128 customDuckAllowance) external;    
-    function setDuckProfile(uint256 tokenId, bytes32 name, bytes32 status, string calldata description) external;    
     function burnRenegadeDuck(uint256 tokenId, string calldata reason) external;
+    function mintCustomDuck(address to, string calldata webp) external payable;
+    function mintTozziDuck(address to, uint256 duckId, string calldata webp, bytes32[] calldata merkleProof) external payable;
     function ownerMint(address to, string calldata webp) external;
     function setArtistName(uint256 tokenId, bytes32 name) external;
-    function mintTozziDuck(address to, uint256 duckId, string calldata webp, bytes32[] calldata merkleProof) external payable;
-    function mintCustomDuck(address to, string calldata webp) external payable;
+    function setDuckAllowance(address who, DuckAllowance calldata allowance) external;
+    function setDuckAllowances(address[] calldata who, DuckAllowance calldata allowance) external;
+    function setDuckProfile(uint256 tokenId, bytes32 name, bytes32 status, string calldata description) external;    
+    function setDuckTitle(uint256 tokenId, bytes32 title) external;
+    function setMOTD(string calldata motd) external;
+    function setMachineConfig(MachineConfig calldata _machineConfig) external;
+    function setOwnershipTokenURI(string calldata ownershipTokenUri) external;
     function withdraw(address recipient, uint256 amount) external;
 }
