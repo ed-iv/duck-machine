@@ -277,6 +277,11 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
         internalType: "string",
         name: "webp",
         type: "string",
@@ -289,6 +294,11 @@ const _abi = [
   },
   {
     inputs: [
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
       {
         internalType: "uint256",
         name: "duckId",

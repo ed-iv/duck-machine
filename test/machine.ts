@@ -104,7 +104,7 @@ describe("Duck Machine", () => {
 
       // Mint 5 custom ducks
       for (let i = 0; i < 5; i++) {
-        await duckMachine.connect(user).mintCustomDuck(ducks[i].webp, { value: enabledConfig.customDuckPrice });
+        await duckMachine.connect(user).mintCustomDuck(user.address, ducks[i].webp, { value: enabledConfig.customDuckPrice });
       }
 
       expect(await duckMachine.totalSupply()).to.be.eq(6);
@@ -124,6 +124,7 @@ describe("Duck Machine", () => {
       await Promise.all(
         ducks.map(async (duck, index) => {          
           await expect(duckMachine.connect(user).mintTozziDuck(
+              user.address,
               index, 
               duck.webp, 
               duck.proof, 
@@ -143,6 +144,7 @@ describe("Duck Machine", () => {
       compareConfigs(config, defaultConfig);
       await expect(
         duckMachine.connect(user).mintTozziDuck(
+          user.address,
           0, 
           duckData[0].webp, 
           duckData[0].proof, 
@@ -157,6 +159,7 @@ describe("Duck Machine", () => {
         .withArgs(owner.address, ...Object.values(allowConfig));
       
       await expect(duckMachine.connect(user).mintTozziDuck(
+        user.address,
         0, 
         duckData[0].webp, 
         duckData[0].proof, 
@@ -171,6 +174,7 @@ describe("Duck Machine", () => {
       expect(allowance.customDuckAllowance).to.be.eq(0);
       
       await expect(duckMachine.connect(user).mintTozziDuck(
+        user.address,
         0, 
         duckData[0].webp, 
         duckData[0].proof, 
@@ -183,6 +187,7 @@ describe("Duck Machine", () => {
       expect(allowance.customDuckAllowance).to.be.eq(0);
 
       await expect(duckMachine.connect(user).mintTozziDuck(
+        user.address,
         1, 
         duckData[1].webp, 
         duckData[1].proof, 
@@ -208,7 +213,10 @@ describe("Duck Machine", () => {
           if (index >= 10) return;
           await expect(
             duckMachine.connect(user).mintCustomDuck(
-              duck.webp, { value: enabledConfig.customDuckPrice })
+              user.address,
+              duck.webp, 
+              { value: enabledConfig.customDuckPrice }
+            )
           ).to.emit(duckMachine, "DuckMinted")
           .withArgs(200 + index, user.address, 1, enabledConfig.customDuckPrice);          
         })
@@ -230,7 +238,9 @@ describe("Duck Machine", () => {
       compareConfigs(config, defaultConfig);
 
       await expect(duckMachine.connect(user).mintCustomDuck(
-          ducks[0].webp, { value: defaultConfig.customDuckPrice }
+        user.address,
+        ducks[0].webp, 
+        { value: defaultConfig.customDuckPrice }
       )).to.be.revertedWithCustomError(duckMachine, "MintingDisabled");
     });
 
@@ -241,7 +251,9 @@ describe("Duck Machine", () => {
         .withArgs(owner.address, ...Object.values(allowConfig));
 
       await expect(duckMachine.connect(user).mintCustomDuck(
-        ducks[0].webp, { value: allowConfig.customDuckPrice }
+        user.address,
+        ducks[0].webp, 
+        { value: allowConfig.customDuckPrice }
       )).to.be.revertedWithCustomError(duckMachine, "InsufficientDuckAllowance");
       
       await duckMachine.connect(owner).setDuckAllowance(user.address, 0, 2);
@@ -250,7 +262,9 @@ describe("Duck Machine", () => {
       expect(allowance.customDuckAllowance).to.be.eq(2);
       
       await expect(duckMachine.connect(user).mintCustomDuck(
-        ducks[0].webp, {value: allowConfig.customDuckPrice }
+        user.address,
+        ducks[0].webp, 
+        {value: allowConfig.customDuckPrice }
       )).to.emit(duckMachine, "DuckMinted")
         .withArgs(200, user.address, 1, allowConfig.customDuckPrice);
       expect(await duckMachine.ownerOf(200)).to.be.eq(user.address);
@@ -260,8 +274,10 @@ describe("Duck Machine", () => {
       expect(allowance.customDuckAllowance).to.be.eq(1);
       
       await expect(duckMachine.connect(user).mintCustomDuck(
-        ducks[1].webp, { value: allowConfig.customDuckPrice })
-      ).to.emit(duckMachine, "DuckMinted")
+        user.address,
+        ducks[1].webp,
+        { value: allowConfig.customDuckPrice }
+      )).to.emit(duckMachine, "DuckMinted")
       .withArgs(201, user.address, 1, allowConfig.customDuckPrice);
 
       expect(await duckMachine.ownerOf(201)).to.be.eq(user.address);
@@ -276,11 +292,15 @@ describe("Duck Machine", () => {
       await duckMachine.connect(owner).setMachineConfig(enabledConfig);
 
       await expect(duckMachine.connect(user).mintCustomDuck(
-        ducks[0].webp, { value: enabledConfig.customDuckPrice }
+        user.address,
+        ducks[0].webp, 
+        { value: enabledConfig.customDuckPrice }
       )).not.to.be.reverted;
 
       await expect(duckMachine.connect(user).mintCustomDuck(
-        ducks[0].webp, { value: enabledConfig.customDuckPrice }
+        user.address,
+        ducks[0].webp, 
+        { value: enabledConfig.customDuckPrice }
       )).to.be.revertedWithCustomError(duckMachine, "DuckAlreadyExists");
     });
 
@@ -288,12 +308,14 @@ describe("Duck Machine", () => {
       const { owner, user, duckMachine }  = await loadFixture(deployDuckMachineFixture);         
       await duckMachine.connect(owner).setMachineConfig({ ...enabledConfig, maxCustomDucks: 2 });
       await duckMachine.connect(user)
-        .mintCustomDuck(ducks[0].webp, { value: enabledConfig.customDuckPrice });
+        .mintCustomDuck(user.address, ducks[0].webp, { value: enabledConfig.customDuckPrice });
       await duckMachine.connect(user)
-        .mintCustomDuck(ducks[1].webp, { value: enabledConfig.customDuckPrice });
+        .mintCustomDuck(user.address, ducks[1].webp, { value: enabledConfig.customDuckPrice });
       expect (await duckMachine.totalSupply()).to.be.eq(3);
       await expect(duckMachine.connect(user).mintCustomDuck(
-        ducks[2].webp, { value: enabledConfig.customDuckPrice }
+        user.address,
+        ducks[2].webp, 
+        { value: enabledConfig.customDuckPrice }
       )).to.be.revertedWithCustomError(duckMachine, "CustomDuckLimitReached");
     });
   });
@@ -303,7 +325,7 @@ describe("Duck Machine", () => {
       const { owner, user, duckMachine }  = await loadFixture(deployDuckMachineFixture);   
       await duckMachine.connect(owner).setMachineConfig(enabledConfig);  
       await duckMachine.connect(user)
-        .mintCustomDuck(ducks[0].webp, { value: enabledConfig.customDuckPrice });
+        .mintCustomDuck(user.address, ducks[0].webp, { value: enabledConfig.customDuckPrice });
 
       expect(await duckMachine.totalSupply()).to.be.eq(2);
       expect(await duckMachine.ownerOf(200)).to.be.eq(user.address);
@@ -320,7 +342,7 @@ describe("Duck Machine", () => {
       const { owner, user, duckMachine }  = await loadFixture(deployDuckMachineFixture);   
       await duckMachine.connect(owner).setMachineConfig(enabledConfig);  
       await duckMachine.connect(user)
-        .mintCustomDuck(ducks[0].webp, { value: enabledConfig.customDuckPrice });
+        .mintCustomDuck(user.address, ducks[0].webp, { value: enabledConfig.customDuckPrice });
       
       expect(await duckMachine.totalSupply()).to.be.eq(2);
       expect(await duckMachine.ownerOf(200)).to.be.eq(user.address);
@@ -338,9 +360,9 @@ describe("Duck Machine", () => {
       
       // Mint 2 Ducks:
       await duckMachine.connect(user)
-        .mintCustomDuck(ducks[0].webp, { value: enabledConfig.customDuckPrice });
+        .mintCustomDuck(user.address, ducks[0].webp, { value: enabledConfig.customDuckPrice });
       await duckMachine.connect(user)
-        .mintCustomDuck(ducks[1].webp, { value: enabledConfig.customDuckPrice });
+        .mintCustomDuck(user.address, ducks[1].webp, { value: enabledConfig.customDuckPrice });
 
       expect(await duckMachine.totalSupply()).to.be.eq(3);
       expect(await duckMachine.ownerOf(200)).to.be.eq(user.address);
@@ -348,6 +370,7 @@ describe("Duck Machine", () => {
 
       // Cannot mint another:
       await expect(duckMachine.connect(user).mintCustomDuck(
+        user.address,
         ducks[0].webp, 
         { value: enabledConfig.customDuckPrice }
       )).to.be.revertedWithCustomError(duckMachine, "CustomDuckLimitReached");  
@@ -361,11 +384,11 @@ describe("Duck Machine", () => {
 
       // Cannot re-use burned duck data:
       await expect(
-        duckMachine.connect(user).mintCustomDuck(ducks[1].webp, { value: enabledConfig.customDuckPrice })
+        duckMachine.connect(user).mintCustomDuck(user.address, ducks[1].webp, { value: enabledConfig.customDuckPrice })
       ).to.be.revertedWithCustomError(duckMachine, "DuckAlreadyExists");
 
       await expect (
-        duckMachine.connect(user).mintCustomDuck(ducks[2].webp, { value: enabledConfig.customDuckPrice })
+        duckMachine.connect(user).mintCustomDuck(user.address, ducks[2].webp, { value: enabledConfig.customDuckPrice })
       ).to.emit(duckMachine, "DuckMinted")
         .withArgs(202, user.address, 1, enabledConfig.customDuckPrice);
 
@@ -374,6 +397,7 @@ describe("Duck Machine", () => {
 
        // Back to max capacity:
        await expect(duckMachine.connect(user).mintCustomDuck(
+        user.address,
         ducks[3].webp, 
         { value: enabledConfig.customDuckPrice }
       )).to.be.revertedWithCustomError(duckMachine, "CustomDuckLimitReached");  
@@ -387,6 +411,7 @@ describe("Duck Machine", () => {
 
       // (Tozzi) Below
       await expect(duckMachine.connect(user).mintTozziDuck(
+        user.address,
         0, 
         duckData[0].webp, 
         duckData[0].proof, 
@@ -395,6 +420,7 @@ describe("Duck Machine", () => {
 
       // (Tozzi) Above
       await expect(duckMachine.connect(user).mintTozziDuck(
+        user.address,
         0, 
         duckData[0].webp, 
         duckData[0].proof, 
@@ -403,14 +429,17 @@ describe("Duck Machine", () => {
 
       // (Custom) Below
       await expect(duckMachine.connect(user).mintCustomDuck(
-        ducks[0].webp, { value: utils.parseEther("0.05") })
-      ).to.be.revertedWithCustomError(duckMachine, "IncorrectDuckPrice");
+        user.address,
+        ducks[0].webp, 
+        { value: utils.parseEther("0.05") }
+      )).to.be.revertedWithCustomError(duckMachine, "IncorrectDuckPrice");
 
       // (Custom) Above
       await expect(duckMachine.connect(user).mintCustomDuck(
-        ducks[0].webp, { value: utils.parseEther("1.0") })
-      ).to.be.revertedWithCustomError(duckMachine, "IncorrectDuckPrice");
- 
+        user.address,
+        ducks[0].webp, 
+        { value: utils.parseEther("1.0") }
+      )).to.be.revertedWithCustomError(duckMachine, "IncorrectDuckPrice"); 
     });
 
     it("Allows the machine owner to withdraw collected balance", async () => {
@@ -421,6 +450,7 @@ describe("Duck Machine", () => {
       expect(await provider.getBalance(duckMachine.address)).to.be.eq(0);
       // (Tozzi) Below
       await expect(duckMachine.connect(user).mintTozziDuck(
+        user.address,
         0, 
         duckData[0].webp, 
         duckData[0].proof, 
@@ -430,8 +460,10 @@ describe("Duck Machine", () => {
 
       // (Custom) Below
       await expect(duckMachine.connect(user).mintCustomDuck(
-        ducks[0].webp, { value: enabledConfig.customDuckPrice })
-      ).not.to.be.reverted;
+        user.address,
+        ducks[0].webp, 
+        { value: enabledConfig.customDuckPrice }
+      )).not.to.be.reverted;
 
       // Tozzi duck price (0.1) + custom price (0.2) = 0.3
       expect(await provider.getBalance(duckMachine.address)).to.be.eq(utils.parseEther("0.3"));

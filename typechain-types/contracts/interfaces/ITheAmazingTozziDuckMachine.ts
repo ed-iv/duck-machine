@@ -55,8 +55,8 @@ export declare namespace ITheAmazingTozziDuckMachine {
 export interface ITheAmazingTozziDuckMachineInterface extends utils.Interface {
   functions: {
     "burnRenegadeDuck(uint256,string)": FunctionFragment;
-    "mintCustomDuck(string)": FunctionFragment;
-    "mintTozziDuck(uint256,string,bytes32[])": FunctionFragment;
+    "mintCustomDuck(address,string)": FunctionFragment;
+    "mintTozziDuck(address,uint256,string,bytes32[])": FunctionFragment;
     "ownerMint(address,string)": FunctionFragment;
     "setArtistName(uint256,bytes32)": FunctionFragment;
     "setDuckAllowance(address,uint128,uint128)": FunctionFragment;
@@ -90,11 +90,12 @@ export interface ITheAmazingTozziDuckMachineInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "mintCustomDuck",
-    values: [PromiseOrValue<string>]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "mintTozziDuck",
     values: [
+      PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
       PromiseOrValue<BytesLike>[]
@@ -315,11 +316,13 @@ export interface ITheAmazingTozziDuckMachine extends BaseContract {
     ): Promise<ContractTransaction>;
 
     mintCustomDuck(
+      to: PromiseOrValue<string>,
       webp: PromiseOrValue<string>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     mintTozziDuck(
+      to: PromiseOrValue<string>,
       duckId: PromiseOrValue<BigNumberish>,
       webp: PromiseOrValue<string>,
       merkleProof: PromiseOrValue<BytesLike>[],
@@ -388,11 +391,13 @@ export interface ITheAmazingTozziDuckMachine extends BaseContract {
   ): Promise<ContractTransaction>;
 
   mintCustomDuck(
+    to: PromiseOrValue<string>,
     webp: PromiseOrValue<string>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   mintTozziDuck(
+    to: PromiseOrValue<string>,
     duckId: PromiseOrValue<BigNumberish>,
     webp: PromiseOrValue<string>,
     merkleProof: PromiseOrValue<BytesLike>[],
@@ -461,11 +466,13 @@ export interface ITheAmazingTozziDuckMachine extends BaseContract {
     ): Promise<void>;
 
     mintCustomDuck(
+      to: PromiseOrValue<string>,
       webp: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
     mintTozziDuck(
+      to: PromiseOrValue<string>,
       duckId: PromiseOrValue<BigNumberish>,
       webp: PromiseOrValue<string>,
       merkleProof: PromiseOrValue<BytesLike>[],
@@ -613,11 +620,13 @@ export interface ITheAmazingTozziDuckMachine extends BaseContract {
     ): Promise<BigNumber>;
 
     mintCustomDuck(
+      to: PromiseOrValue<string>,
       webp: PromiseOrValue<string>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     mintTozziDuck(
+      to: PromiseOrValue<string>,
       duckId: PromiseOrValue<BigNumberish>,
       webp: PromiseOrValue<string>,
       merkleProof: PromiseOrValue<BytesLike>[],
@@ -687,11 +696,13 @@ export interface ITheAmazingTozziDuckMachine extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     mintCustomDuck(
+      to: PromiseOrValue<string>,
       webp: PromiseOrValue<string>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     mintTozziDuck(
+      to: PromiseOrValue<string>,
       duckId: PromiseOrValue<BigNumberish>,
       webp: PromiseOrValue<string>,
       merkleProof: PromiseOrValue<BytesLike>[],

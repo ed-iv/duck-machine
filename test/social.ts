@@ -4,8 +4,9 @@ import { ethers } from "hardhat";
 import { utils } from "ethers";
 import duckData from "../duck-data/proofs.json";
 import { defaultConfig, enabledConfig } from "../utils/constants";
-import { mintTozziDuck, mintCustomDuck, parseMetadata } from '../utils/helpers';
-import { TheAmazingTozziDuckMachine } from "../typechain-types";
+import { parseMetadata } from '../utils/helpers';
+
+const ducks = Object.values(duckData);
 
 const emptyBytes32 = utils.formatBytes32String('') 
 const testName = utils.formatBytes32String('Duck Name');
@@ -24,9 +25,19 @@ describe("Social Mechanics", () => {
     
     await duckMachine.transferFrom(deployer.address, owner.address, ownershipTokenId);
     await duckMachine.connect(owner).setMachineConfig(enabledConfig);
-
-    await mintTozziDuck(0, duckMachine.connect(user));
-    await mintCustomDuck(duckData[1].webp, duckMachine.connect(user), user);
+    
+    await duckMachine.connect(user).mintTozziDuck(
+      user.address, 
+      0, 
+      ducks[0].webp, 
+      ducks[0].proof,
+      { value: enabledConfig.tozziDuckPrice }
+    );
+    await duckMachine.connect(user).mintCustomDuck(
+      user.address,
+      ducks[1].webp,
+      { value: enabledConfig.customDuckPrice }
+    )    
     duckMachine = duckMachine.connect(owner);
     return { deployer, owner, user, duckMachine, ownershipTokenId };
   }

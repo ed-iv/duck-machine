@@ -232,6 +232,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
      * duck image data is legit. 
      */
     function mintTozziDuck(
+        address to,
         uint256 duckId,
         string calldata webp,
         bytes32[] calldata merkleProof
@@ -250,10 +251,10 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
             revert InvalidProof();
         address pointer = SSTORE2.write(bytes(webp));
         duckImageData[duckId] = pointer;
-        _safeMint(_msgSender(), duckId);
+        _safeMint(to, duckId);
         emit DuckMinted(
             duckId,
-            _msgSender(),
+            to,
             DuckType.Tozzi,
             machineConfig.tozziDuckPrice
         );
@@ -264,7 +265,7 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
      * custom ducks are born into a 1 WEEK probation period. While under probation, custom ducks can be destroyed by the machine's
      * current owner.
      */
-    function mintCustomDuck(string calldata webp) external override payable {
+    function mintCustomDuck(address to, string calldata webp) external override payable {
         if (machineConfig.customDuckMintStatus == MintStatus.Disabled)
             revert MintingDisabled(DuckType.Custom);
         if (_numCustomDucks >= machineConfig.maxCustomDucks)
@@ -284,13 +285,13 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
         uint256 tokenId = TOZZI_DUCKS + (_nextCustomDuckTokenId++);
         address pointer = SSTORE2.write(bytes(webp));
         duckImageData[tokenId] = pointer;
-        _safeMint(_msgSender(), tokenId);
+        _safeMint(to, tokenId);
         duckCreators[tokenId] = _msgSender();
         customDuckHatchedTimes[tokenId] = block.timestamp;
         _numCustomDucks += 1;
         emit DuckMinted(
             tokenId,
-            _msgSender(),
+            to,
             DuckType.Custom,
             machineConfig.customDuckPrice
         );
