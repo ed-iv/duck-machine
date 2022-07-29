@@ -1,7 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.9;
 
-/**
+import "./interfaces/ITheAmazingTozziDuckMachine.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "@rari-capital/solmate/src/utils/SSTORE2.sol";
+import "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
+import {Base64} from "./lib/base64.sol";
+import "hardhat/console.sol";
+
+/// @title Tozzi Ducks
+/// @author (ediv, exp.table) === CHAIN/SAW
+
+/*
  *                     ;@######@b,,,,,,      ,,,,
  *                  .;##b      8@      #N,,{@#### N,
  *                ,###b                8@          #Q;;;;;;;;,
@@ -35,23 +48,15 @@ pragma solidity 0.8.9;
  *                              ;@ #GG$$@#######QpG8@##Q,,,,
  *                            .{@ #GGGG@# #Qp9Q@ ##GG9Q######WN,,,
  *                         ,s#888@QQGG@@##Wb788@QQ@@@ #      7@# Q,
- *           ________               _____    ________             ______
- *           ___  __/__________________(_)   ___  __ \___  __________  /_________
- *            __  /  _  __ \__  /__  /_  /    __  / / /  / / /  ___/_  //_/_  ___/
- *           _  /   / /_/ /_  /__  /_  /     _  /_/ // /_/ // /__ _  ,<  _(__  )
- *            /_/    \____/_____/____/_/      /_____/ \__,_/ \___/ /_/|_| /____/
  *
+ *   ________________________________   _____________  _______________ _________
+ *   ___  __/_  __ \__  /__  /___  _/   ___  __ \_  / / /_  ____/__  //_/_  ___/
+ *   __  /  _  / / /_  /__  / __  /     __  / / /  / / /_  /    __  ,<  _____ \ 
+ *   _  /   / /_/ /_  /__  /___/ /      _  /_/ // /_/ / / /___  _  /| | ____/ / 
+ *   /_/    \____/ /____/____/___/      /_____/ \____/  \____/  /_/ |_| /____/  
+ *
+ *                                                  JIM TOZZI x CHAIN/SAW         
  */
-
-import "./interfaces/ITheAmazingTozziDuckMachine.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "@rari-capital/solmate/src/utils/SSTORE2.sol";
-import "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
-import {Base64} from "./lib/base64.sol";
-import "hardhat/console.sol";
 
 contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumerable, Ownable {
     using Strings for uint256;    
