@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@rari-capital/solmate/src/utils/SSTORE2.sol";
 import "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 import {Base64} from "./lib/base64.sol";
+import "hardhat/console.sol";
 
 /// @title Tozzi Ducks
 /// @author (ediv, exp.table) === CHAIN/SAW
@@ -435,5 +436,12 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
             bytesArray[i] = _bytes32[i];
         }
         return string(bytesArray);
+    }
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable) returns (bool) {
+        return interfaceId == type(ITheAmazingTozziDuckMachine).interfaceId || super.supportsInterface(interfaceId);
     }
 }

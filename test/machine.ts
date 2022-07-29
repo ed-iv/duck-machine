@@ -30,6 +30,13 @@ describe("Duck Machine", () => {
   }
 
   describe("Machine Configuration", () => {
+    it("Supports interfaces", async() => {
+      const { owner, duckMachine, ownershipTokenId }  = await loadFixture(deployDuckMachineFixture);
+      expect(await duckMachine.supportsInterface(0x80ac58cd)).to.be.eq(true);
+      expect(await duckMachine.supportsInterface(0x5b5e139f)).to.be.eq(true);
+      expect(await duckMachine.supportsInterface(0x780e9d63)).to.be.eq(true);      
+    });
+
     it("Initializes the machine with correct default configuration", async () => {
       const { owner, duckMachine, ownershipTokenId }  = await loadFixture(deployDuckMachineFixture);
       const currentOwner = await duckMachine.ownerOf(ownershipTokenId);
