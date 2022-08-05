@@ -4,6 +4,7 @@ pragma solidity 0.8.9;
 import "./interfaces/ITheAmazingTozziDuckMachine.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@rari-capital/solmate/src/utils/SSTORE2.sol";
@@ -58,7 +59,7 @@ import "hardhat/console.sol";
  *                                                  JIM TOZZI x CHAIN/SAW         
  */
 
-contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumerable, Ownable {
+contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable, ITheAmazingTozziDuckMachine {
     using Strings for uint256;    
     
     uint256 private constant TOZZI_DUCKS = 200;    
@@ -455,7 +456,15 @@ contract TheAmazingTozziDuckMachine is ITheAmazingTozziDuckMachine, ERC721Enumer
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, ERC721Enumerable) returns (bool) {
         return interfaceId == type(ITheAmazingTozziDuckMachine).interfaceId || super.supportsInterface(interfaceId);
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual override(ERC721, ERC721Enumerable) {
+        super._beforeTokenTransfer(from, to, tokenId);
     }
 }

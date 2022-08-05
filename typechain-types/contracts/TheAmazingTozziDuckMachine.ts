@@ -68,6 +68,7 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
     "approve(address,uint256)": FunctionFragment;
     "artists(uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
+    "burn(uint256)": FunctionFragment;
     "burnRenegadeDuck(uint256,string)": FunctionFragment;
     "customDuckHatchedTimes(uint256)": FunctionFragment;
     "duckAllowances(address)": FunctionFragment;
@@ -115,6 +116,7 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
       | "approve"
       | "artists"
       | "balanceOf"
+      | "burn"
       | "burnRenegadeDuck"
       | "customDuckHatchedTimes"
       | "duckAllowances"
@@ -171,6 +173,10 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "balanceOf",
     values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burn",
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "burnRenegadeDuck",
@@ -356,6 +362,7 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "artists", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "burnRenegadeDuck",
     data: BytesLike
@@ -681,6 +688,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    burn(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     burnRenegadeDuck(
       tokenId: PromiseOrValue<BigNumberish>,
       reason: PromiseOrValue<string>,
@@ -921,6 +933,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  burn(
+    tokenId: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   burnRenegadeDuck(
     tokenId: PromiseOrValue<BigNumberish>,
     reason: PromiseOrValue<string>,
@@ -1160,6 +1177,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
       owner: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    burn(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     burnRenegadeDuck(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -1524,6 +1546,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    burn(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     burnRenegadeDuck(
       tokenId: PromiseOrValue<BigNumberish>,
       reason: PromiseOrValue<string>,
@@ -1744,6 +1771,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
     balanceOf(
       owner: PromiseOrValue<string>,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    burn(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     burnRenegadeDuck(
