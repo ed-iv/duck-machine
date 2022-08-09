@@ -166,7 +166,7 @@ describe("Duck Machine", () => {
   });
 
   describe("Tozzi Duck Minting", () => {    
-    it("FOO Allows users to mint tozzi ducks", async () => {      
+    it("Allows users to mint tozzi ducks", async () => {      
       const { owner, user, duckMachine }  = await loadFixture(deployDuckMachineFixture);          
       await duckMachine.connect(owner).setMachineConfig(enabledConfig);
       await Promise.all(
@@ -292,6 +292,36 @@ describe("Duck Machine", () => {
         expect(await duckMachine.duckCreators(200 + i))
           .to.be.eq(user.address);
       } 
+    });
+
+    it("Skips ownership token", async () => {
+      const { owner, user, duckMachine }  = await loadFixture(deployDuckMachineFixture);
+      await duckMachine.connect(owner).setMachineConfig({...enabledConfig, maxCustomDucks: 1000});
+
+      const toMint = Array.from(Array(1000).keys());
+      await Promise.all(
+        toMint.map(async (duck, index) => {
+          const expectedIndex = index + 200 >= 420 ? index + 201 : index + 200;
+          const mockImageData = ducks[0].webp + `duck-image-${index}`;
+          await expect(
+            duckMachine.connect(user).mintCustomDuck(
+              user.address,
+              mockImageData,
+              { value: enabledConfig.customDuckPrice }
+            )
+          ).to.emit(duckMachine, "DuckMinted")
+          .withArgs(
+            expectedIndex, 
+            utils.solidityKeccak256(['string'], [mockImageData]),
+            user.address,
+            user.address, 
+            1, 
+            enabledConfig.customDuckPrice
+          );          
+        })
+      );
+      expect(await duckMachine.balanceOf(user.address)).to.be.eq(1000);
+      expect(await duckMachine.totalSupply()).to.be.eq(1001);
     });
 
     it("Reverts when custom duck minting is disabled", async () => {
