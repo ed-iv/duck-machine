@@ -10,7 +10,6 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@rari-capital/solmate/src/utils/SSTORE2.sol";
 import "@rari-capital/solmate/src/utils/SafeTransferLib.sol";
 import {Base64} from "./lib/base64.sol";
-import "hardhat/console.sol";
 
 /// @title Tozzi Ducks
 /// @author (ediv, exp.table) === CHAIN/SAW
