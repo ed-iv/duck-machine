@@ -79,8 +79,8 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
     mapping(bytes32 => bool) public duckExists;
     mapping(uint256 => uint256) public customDuckHatchedTimes;
     
-    modifier onlyMachineOwner() {
-        if (_machineOwner() != _msgSender()) revert Unauthorized();
+    modifier onlyMachineOwner() {        
+        if (!_isApprovedOrOwner(_msgSender(), OWNERSHIP_TOKEN_ID)) revert Unauthorized();
         _;
     }
 
@@ -155,33 +155,7 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
             duckAllowances[who[i]] = allowance;
         }
     }
-    
-    /**
-     * @notice Grant a special title to a deserving duck.
-     */
-    function setDuckTitle(
-        uint256 tokenId, 
-        bytes32 title
-    ) external override onlyExtantDuck(tokenId) onlyMachineOwner {
-        duckTitles[tokenId] = title;
-        emit DuckTitleGranted(tokenId, title, _machineOwner());
-    }
 
-    /**
-     * @notice Update your duck's profile by providing a custom name, status, and description.
-     * @dev Customized duck profiles are used within tokenURI() when constructing a duck's metadata.
-     */
-    function setDuckProfile(
-        uint256 tokenId,
-        bytes32 name,
-        bytes32 status,
-        string calldata description
-    ) onlyExtantDuck(tokenId) external override {
-        if (ownerOf(tokenId) != _msgSender()) revert Unauthorized();
-        duckProfiles[tokenId] = DuckProfile(name, status, description);
-        emit DuckProfileUpdated(tokenId, name, status, description);
-    }
-    
     /**
      * @notice Burn a freshly minted custom duck because you hate it's face. Custom ducks that are less than
      * 1 WEEK old are subject to the destructive whims of the machine's owner.
@@ -197,8 +171,19 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
         _numCustomDucks -= 1;
         emit CustomDuckBurned(tokenId, _machineOwner(), owner, reason);
     }
-
+    
     /**
+     * @notice Grant a special title to a deserving duck.
+     */
+    function setDuckTitle(
+        uint256 tokenId, 
+        bytes32 title
+    ) external override onlyExtantDuck(tokenId) onlyMachineOwner {
+        duckTitles[tokenId] = title;
+        emit DuckTitleGranted(tokenId, title, _machineOwner());
+    }
+
+     /**
      * @notice Mint a custom duck directly to specified recipient bypassing minting fees. The resulting duck will have 
      * it's 'Creator' attribute set to the supplied artist parameter.
      */
@@ -240,6 +225,30 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
         artists[tokenId] = name;
     }
 
+    /**
+     * @notice After all ... Why shouldn't you take profits?
+     */
+    function withdraw(address recipient, uint256 amount) external override onlyMachineOwner {
+        if (amount > address(this).balance) revert InsufficientFunds();
+        if (amount == 0) revert AmountMustBeNonZero();
+        SafeTransferLib.safeTransferETH(recipient, amount);
+    }
+
+    /**
+     * @notice Update your duck's profile by providing a custom name, status, and description.
+     * @dev Customized duck profiles are used within tokenURI() when constructing a duck's metadata.
+     */
+    function setDuckProfile(
+        uint256 tokenId,
+        bytes32 name,
+        bytes32 status,
+        string calldata description
+    ) onlyExtantDuck(tokenId) external override {        
+        if (!_isApprovedOrOwner(_msgSender(), tokenId)) revert Unauthorized();
+        duckProfiles[tokenId] = DuckProfile(name, status, description);
+        emit DuckProfileUpdated(tokenId, name, status, description);
+    }
+       
     /**
      * @notice Mint one of 200 official Tozzi Ducks created by Jim Tozzi. Image storage costs paid by minter.
      * @dev User supplies webp data to be stored on chain. The provided proof is used verify that provided
@@ -337,15 +346,6 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
                 '}'
             ))
         ));
-    }
-
-    /**
-     * @notice After all ... Why shouldn't you take profits?
-     */
-    function withdraw(address recipient, uint256 amount) external override onlyMachineOwner {
-        if (amount > address(this).balance) revert InsufficientFunds();
-        if (amount == 0) revert AmountMustBeNonZero();
-        SafeTransferLib.safeTransferETH(recipient, amount);
     }
 
     function _getDuckCreator(uint256 tokenId) internal view returns (string memory) {

@@ -9,7 +9,7 @@ const MINTSTATUS_WHITELIST = BigNumber.from(2);
 const defaultConfig = {
   tozziDuckPrice: utils.parseEther("0.001"), 
   customDuckPrice: utils.parseEther("0.001"),
-  maxCustomDucks: BigNumber.from(100),
+  maxCustomDucks: BigNumber.from(10),
   tozziDuckMintStatus: MINTSTATUS_ENABLED,
   customDuckMintStatus: MINTSTATUS_ENABLED,
 };
