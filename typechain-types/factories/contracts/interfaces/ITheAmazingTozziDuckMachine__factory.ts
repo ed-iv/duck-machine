@@ -74,22 +74,28 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
         name: "duckId",
         type: "uint256",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
-        name: "admin",
+        name: "duckOwner",
         type: "address",
       },
       {
         indexed: false,
         internalType: "address",
-        name: "owner",
+        name: "machineOwner",
         type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "webp",
+        type: "string",
       },
       {
         indexed: false,

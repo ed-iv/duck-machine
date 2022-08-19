@@ -46,9 +46,10 @@ interface ITheAmazingTozziDuckMachine {
     }    
 
     event CustomDuckBurned(
-        uint256 duckId,
-        address admin,
-        address owner,
+        uint256 indexed duckId,
+        address indexed duckOwner,
+        address machineOwner,        
+        string webp,
         string reason
     );
 

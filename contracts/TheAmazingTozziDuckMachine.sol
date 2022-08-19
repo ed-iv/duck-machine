@@ -167,9 +167,10 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
         if (!_isCustomDuck(tokenId)) revert InvalidDuckId();
         if (!_isOnProbation(tokenId)) revert BurnWindowPassed();
         address owner = ownerOf(tokenId);
+        string memory webp = string(SSTORE2.read(duckImageData[tokenId]));
         _burn(tokenId);
         _numCustomDucks -= 1;
-        emit CustomDuckBurned(tokenId, _machineOwner(), owner, reason);
+        emit CustomDuckBurned(tokenId, owner, _machineOwner(), webp, reason);
     }
     
     /**

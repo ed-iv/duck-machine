@@ -438,7 +438,7 @@ describe("Duck Machine", () => {
 
       await expect(duckMachine.connect(owner).burnRenegadeDuck(200, 'lol'))
         .to.emit(duckMachine, "CustomDuckBurned")
-        .withArgs(200, owner.address, user.address, 'lol');
+        .withArgs(200, user.address, owner.address, ducks[0].webp, 'lol');
 
       expect(await duckMachine.totalSupply()).to.be.eq(1);
       await expect(duckMachine.ownerOf(200)).to.be.revertedWith("ERC721: owner query for nonexistent token");
@@ -484,7 +484,7 @@ describe("Duck Machine", () => {
       // Burn One:
       await expect(duckMachine.connect(owner).burnRenegadeDuck(201, 'lol'))
         .to.emit(duckMachine, "CustomDuckBurned")
-        .withArgs(201, owner.address, user.address, 'lol');
+        .withArgs(201, user.address, owner.address, ducks[1].webp, 'lol');
 
       expect(await duckMachine.totalSupply()).to.be.eq(2);
 

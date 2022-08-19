@@ -493,7 +493,7 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
-    "CustomDuckBurned(uint256,address,address,string)": EventFragment;
+    "CustomDuckBurned(uint256,address,address,string,string)": EventFragment;
     "DuckMinted(uint256,bytes32,address,address,uint8,uint256)": EventFragment;
     "DuckProfileUpdated(uint256,bytes32,bytes32,string)": EventFragment;
     "DuckTitleGranted(uint256,bytes32,address)": EventFragment;
@@ -541,12 +541,13 @@ export type ApprovalForAllEventFilter = TypedEventFilter<ApprovalForAllEvent>;
 
 export interface CustomDuckBurnedEventObject {
   duckId: BigNumber;
-  admin: string;
-  owner: string;
+  duckOwner: string;
+  machineOwner: string;
+  webp: string;
   reason: string;
 }
 export type CustomDuckBurnedEvent = TypedEvent<
-  [BigNumber, string, string, string],
+  [BigNumber, string, string, string, string],
   CustomDuckBurnedEventObject
 >;
 
@@ -1426,16 +1427,18 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
       approved?: null
     ): ApprovalForAllEventFilter;
 
-    "CustomDuckBurned(uint256,address,address,string)"(
-      duckId?: null,
-      admin?: null,
-      owner?: null,
+    "CustomDuckBurned(uint256,address,address,string,string)"(
+      duckId?: PromiseOrValue<BigNumberish> | null,
+      duckOwner?: PromiseOrValue<string> | null,
+      machineOwner?: null,
+      webp?: null,
       reason?: null
     ): CustomDuckBurnedEventFilter;
     CustomDuckBurned(
-      duckId?: null,
-      admin?: null,
-      owner?: null,
+      duckId?: PromiseOrValue<BigNumberish> | null,
+      duckOwner?: PromiseOrValue<string> | null,
+      machineOwner?: null,
+      webp?: null,
       reason?: null
     ): CustomDuckBurnedEventFilter;
 
