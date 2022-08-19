@@ -3,7 +3,7 @@ pragma solidity 0.8.9;
 
 interface ITheAmazingTozziDuckMachine {
     error AmountMustBeNonZero();
-    error BurnWindowPassed();
+    error ProbationEnded();
     error CustomDuckLimitReached();
     error DuckAlreadyExists();
     error IncorrectDuckPrice();
@@ -87,6 +87,7 @@ interface ITheAmazingTozziDuckMachine {
     event MOTDSet(address indexed owner, string message);
 
     function burnRenegadeDuck(uint256 tokenId, string calldata reason) external;
+    function endProbation(uint256 tokenId) external;
     function mintCustomDuck(address to, string calldata webp) external payable;
     function mintTozziDuck(address to, uint256 duckId, string calldata webp, bytes32[] calldata merkleProof) external payable;
     function ownerMint(address to, string calldata webp) external;

@@ -77,6 +77,7 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
     "duckImageData(uint256)": FunctionFragment;
     "duckProfiles(uint256)": FunctionFragment;
     "duckTitles(uint256)": FunctionFragment;
+    "endProbation(uint256)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "machineConfig()": FunctionFragment;
@@ -86,6 +87,7 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
     "owner()": FunctionFragment;
     "ownerMint(address,string)": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
+    "probationEnded(uint256)": FunctionFragment;
     "probationPeriod()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
@@ -125,6 +127,7 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
       | "duckImageData"
       | "duckProfiles"
       | "duckTitles"
+      | "endProbation"
       | "getApproved"
       | "isApprovedForAll"
       | "machineConfig"
@@ -134,6 +137,7 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
       | "owner"
       | "ownerMint"
       | "ownerOf"
+      | "probationEnded"
       | "probationPeriod"
       | "renounceOwnership"
       | "safeTransferFrom(address,address,uint256)"
@@ -211,6 +215,10 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
+    functionFragment: "endProbation",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getApproved",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
@@ -243,6 +251,10 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "ownerOf",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "probationEnded",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
@@ -390,6 +402,10 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "duckTitles", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "endProbation",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getApproved",
     data: BytesLike
   ): Result;
@@ -413,6 +429,10 @@ export interface TheAmazingTozziDuckMachineInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerMint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "probationEnded",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "probationPeriod",
     data: BytesLike
@@ -746,6 +766,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    endProbation(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     getApproved(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -797,6 +822,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    probationEnded(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     probationPeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -991,6 +1021,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  endProbation(
+    tokenId: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   getApproved(
     tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
@@ -1042,6 +1077,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
     tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  probationEnded(
+    arg0: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   probationPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1236,6 +1276,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    endProbation(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     getApproved(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -1287,6 +1332,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    probationEnded(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     probationPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1595,6 +1645,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    endProbation(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     getApproved(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -1634,6 +1689,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
 
     ownerOf(
       tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    probationEnded(
+      arg0: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1822,6 +1882,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    endProbation(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     getApproved(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -1861,6 +1926,11 @@ export interface TheAmazingTozziDuckMachine extends BaseContract {
 
     ownerOf(
       tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    probationEnded(
+      arg0: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

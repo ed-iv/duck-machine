@@ -444,6 +444,28 @@ describe("Duck Machine", () => {
       await expect(duckMachine.ownerOf(200)).to.be.revertedWith("ERC721: owner query for nonexistent token");
     });
 
+    it("Allows owner to end probation early", async () => {
+      const { owner, user, duckMachine }  = await loadFixture(deployDuckMachineFixture);   
+      await duckMachine.connect(owner).setMachineConfig(enabledConfig);  
+      await duckMachine.connect(user)
+        .mintCustomDuck(user.address, ducks[0].webp, { value: enabledConfig.customDuckPrice });
+
+      expect(await duckMachine.totalSupply()).to.be.eq(2);
+      expect(await duckMachine.ownerOf(200)).to.be.eq(user.address);
+      expect(await duckMachine.probationEnded(200)).to.be.eq(false);
+
+      await duckMachine.connect(owner).endProbation(200);
+
+      expect(await duckMachine.probationEnded(200)).to.be.eq(true);
+
+      await expect(duckMachine.connect(owner).burnRenegadeDuck(200, 'lol'))
+        .to.be.revertedWithCustomError(duckMachine, "ProbationEnded")
+
+      expect(await duckMachine.totalSupply()).to.be.eq(2);
+      expect(await duckMachine.ownerOf(200)).to.be.eq(user.address);
+    });
+    
+
     it("Reverts when burning custom ducks that are no longer on probation", async () => {
       const { owner, user, duckMachine }  = await loadFixture(deployDuckMachineFixture);   
       await duckMachine.connect(owner).setMachineConfig(enabledConfig);  
@@ -456,8 +478,11 @@ describe("Duck Machine", () => {
       // Advance the timestamp by 1 WEEK
       await time.increase(ONE_WEEK); 
 
+      await expect(duckMachine.connect(owner).endProbation(200))
+        .to.be.revertedWithCustomError(duckMachine, "ProbationEnded")
+
       await expect(duckMachine.connect(owner).burnRenegadeDuck(200, 'lol'))
-        .to.be.revertedWithCustomError(duckMachine, "BurnWindowPassed")
+        .to.be.revertedWithCustomError(duckMachine, "ProbationEnded")
     });
 
     it("Allows all allotted custom ducks to be minted even if some get burned", async () => {

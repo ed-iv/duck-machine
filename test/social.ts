@@ -74,7 +74,7 @@ describe("Social Mechanics", () => {
     });
 
     it("Duck profile determines tokenURI", async () => {      
-      const { duckMachine, user }  = await loadFixture(deployDuckMachineFixture);
+      const { duckMachine, user, owner }  = await loadFixture(deployDuckMachineFixture);
       await duckMachine.connect(user).setDuckProfile(0, testName, testStatus, 'duck profile');
       let metadata = parseMetadata(await duckMachine.tokenURI(0));      
       let status = metadata.attributes.find((a: any) => a.trait_type === 'Status');
@@ -92,6 +92,12 @@ describe("Social Mechanics", () => {
       metadata = parseMetadata(await duckMachine.tokenURI(200));
       status = metadata.attributes.find((a: any) => a.trait_type === 'Status');
       expect(status.value).to.be.eq('Probation');
+
+      await duckMachine.connect(owner).endProbation(200);
+      metadata = parseMetadata(await duckMachine.tokenURI(200));
+      status = metadata.attributes.find((a: any) => a.trait_type === 'Status');
+      expect(status).to.be.eq(undefined);
+
     });
   });
 

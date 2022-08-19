@@ -67,12 +67,13 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
     bytes32 private constant MERKLE_ROOT = 0x76cf55ec8f156f88221bd1f5b7840a0e6427cafd0518667edd4ca7e530b535f3;    
     uint256 private _nextCustomDuckTokenId;
     uint256 private _numCustomDucks;
-    string private _ownershipTokenURI; 
+    string private _ownershipTokenURI;     
     
     MachineConfig public machineConfig;
     mapping(uint256 => address) public duckCreators;
     mapping(uint256 => bytes32) public artists;
     mapping(uint256 => bytes32) public duckTitles;
+    mapping(uint256 => bool) public probationEnded;
     mapping(address => DuckAllowance) public duckAllowances;
     mapping(uint256 => DuckProfile) public duckProfiles;
     mapping(uint256 => address) public duckImageData;
@@ -157,6 +158,21 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
     }
 
     /**
+     * @notice Immediately end probationary period for a custom duck. For use-cases where the duck looks so fine
+     * you just can't wait a week to make them official.
+     */
+    function endProbation(uint256 tokenId) 
+        external 
+        override 
+        onlyExtantDuck(tokenId) 
+        onlyMachineOwner 
+    {
+        if (!_isCustomDuck(tokenId)) revert InvalidDuckId();
+        if (!_isOnProbation(tokenId)) revert ProbationEnded();
+        probationEnded[tokenId] = true;
+    }
+
+    /**
      * @notice Burn a freshly minted custom duck because you hate it's face. Custom ducks that are less than
      * 1 WEEK old are subject to the destructive whims of the machine's owner.
      */
@@ -165,7 +181,7 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
         string calldata reason
     ) external override onlyExtantDuck(tokenId) onlyMachineOwner {
         if (!_isCustomDuck(tokenId)) revert InvalidDuckId();
-        if (!_isOnProbation(tokenId)) revert BurnWindowPassed();
+        if (!_isOnProbation(tokenId)) revert ProbationEnded();
         address owner = ownerOf(tokenId);
         string memory webp = string(SSTORE2.read(duckImageData[tokenId]));
         _burn(tokenId);
@@ -407,7 +423,6 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
                 '}'
             );
         }
-
         return string(abi.encodePacked('[', _attributes, ']'));
     }
 
@@ -438,6 +453,7 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
 
     function _isOnProbation(uint256 tokenId) internal view returns (bool) {
         if (!_isCustomDuck(tokenId)) return false;
+        if (probationEnded[tokenId]) return false;
         return block.timestamp <= customDuckHatchedTimes[tokenId] + probationPeriod;
     }
 

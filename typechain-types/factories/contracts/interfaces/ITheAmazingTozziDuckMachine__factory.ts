@@ -17,11 +17,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "BurnWindowPassed",
-    type: "error",
-  },
-  {
-    inputs: [],
     name: "CustomDuckLimitReached",
     type: "error",
   },
@@ -63,6 +58,11 @@ const _abi = [
   {
     inputs: [],
     name: "MintingDisabled",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ProbationEnded",
     type: "error",
   },
   {
@@ -282,6 +282,19 @@ const _abi = [
       },
     ],
     name: "burnRenegadeDuck",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+    ],
+    name: "endProbation",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
