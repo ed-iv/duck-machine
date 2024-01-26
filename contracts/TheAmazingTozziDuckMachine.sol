@@ -81,7 +81,7 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
     mapping(uint256 => uint256) public customDuckHatchedTimes;
     
     modifier onlyMachineOwner() {        
-        if (!_isApprovedOrOwner(_msgSender(), OWNERSHIP_TOKEN_ID)) revert Unauthorized();
+        if (!_isApprovedOrOwner(msg.sender, OWNERSHIP_TOKEN_ID)) revert Unauthorized();
         _;
     }
 
@@ -96,7 +96,7 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
     ) ERC721("Tozzi Ducks", "TZDUCKS") {
         machineConfig = _machineConfig;
         _ownershipTokenURI = ownershipTokenURI;
-        _safeMint(_msgSender(), OWNERSHIP_TOKEN_ID);
+        _mint(msg.sender, OWNERSHIP_TOKEN_ID);
     }
 
     /**
@@ -129,7 +129,7 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
      * @dev Emits an event to be picked up and displayed by front-ends.
      */
     function setMOTD(string calldata motd) external override onlyMachineOwner {
-        emit MOTDSet(_msgSender(), motd);
+        emit MOTDSet(msg.sender, motd);
     }
 
     /**
@@ -217,14 +217,14 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
         duckExists[webpHash] = true;
         uint256 tokenId = TOZZI_DUCKS + (_nextCustomDuckTokenId++);
         address pointer = SSTORE2.write(bytes(webp));
-        duckImageData[tokenId] = pointer;
-        _safeMint(to, tokenId);
+        duckImageData[tokenId] = pointer;        
         customDuckHatchedTimes[tokenId] = block.timestamp;
         _numCustomDucks += 1;
+        _mint(to, tokenId);
         emit DuckMinted(
             tokenId,
             webpHash,
-            _msgSender(),
+            msg.sender,
             to,
             DuckType.Custom,
             machineConfig.customDuckPrice
@@ -261,7 +261,7 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
         bytes32 status,
         string calldata description
     ) onlyExtantDuck(tokenId) external override {        
-        if (!_isApprovedOrOwner(_msgSender(), tokenId)) revert Unauthorized();
+        if (!_isApprovedOrOwner(msg.sender, tokenId)) revert Unauthorized();
         duckProfiles[tokenId] = DuckProfile(name, status, description);
         emit DuckProfileUpdated(tokenId, name, status, description);
     }
@@ -282,9 +282,9 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
         if (msg.value != machineConfig.tozziDuckPrice)
             revert IncorrectDuckPrice();
         if (machineConfig.tozziDuckMintStatus == MintStatus.Allow) {
-            if (duckAllowances[_msgSender()].tozziDuckAllowance <= 0)
+            if (duckAllowances[msg.sender].tozziDuckAllowance <= 0)
                 revert InsufficientDuckAllowance();
-            duckAllowances[_msgSender()].tozziDuckAllowance--;
+            duckAllowances[msg.sender].tozziDuckAllowance--;
         }
         bytes32 webpHash = keccak256(abi.encodePacked(webp));
         bytes32 node = keccak256(abi.encodePacked(duckId, webp));
@@ -296,7 +296,7 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
         emit DuckMinted(
             duckId,
             webpHash,
-            _msgSender(),
+            msg.sender,
             to,
             DuckType.Tozzi,
             machineConfig.tozziDuckPrice
@@ -316,9 +316,9 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
         if (msg.value != machineConfig.customDuckPrice)
             revert IncorrectDuckPrice();
         if (machineConfig.customDuckMintStatus == MintStatus.Allow) {
-            if (duckAllowances[_msgSender()].customDuckAllowance <= 0)
+            if (duckAllowances[msg.sender].customDuckAllowance <= 0)
                 revert InsufficientDuckAllowance();
-            duckAllowances[_msgSender()].customDuckAllowance--;
+            duckAllowances[msg.sender].customDuckAllowance--;
         }
         if (_nextCustomDuckTokenId + TOZZI_DUCKS == OWNERSHIP_TOKEN_ID)
             _nextCustomDuckTokenId += 1;
@@ -329,13 +329,13 @@ contract TheAmazingTozziDuckMachine is ERC721Burnable, ERC721Enumerable, Ownable
         address pointer = SSTORE2.write(bytes(webp));
         duckImageData[tokenId] = pointer;
         _safeMint(to, tokenId);
-        duckCreators[tokenId] = _msgSender();
+        duckCreators[tokenId] = msg.sender;
         customDuckHatchedTimes[tokenId] = block.timestamp;
         _numCustomDucks += 1;
         emit DuckMinted(
             tokenId,
             webpHash,
-            _msgSender(),
+            msg.sender,
             to,
             DuckType.Custom,
             machineConfig.customDuckPrice
